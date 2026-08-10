@@ -60,10 +60,10 @@ class DualPitchContourChart extends StatelessWidget {
         const SizedBox(height: 8),
         Row(
           children: [
-            _LegendDot(color: Colors.deepOrange, label: 'Siz'),
+            const _LegendDot(color: Colors.deepOrange, label: 'Siz'),
             if (_hasReference) ...[
               const SizedBox(width: 16),
-              _LegendDot(color: Colors.teal, label: 'Reference'),
+              const _LegendDot(color: Colors.teal, label: 'Reference'),
             ],
           ],
         ),
