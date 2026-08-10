@@ -90,7 +90,7 @@ class _ModeCard extends StatelessWidget {
           vertical: 10,
         ),
         leading: CircleAvatar(
-          backgroundColor: AppTheme.primary.withValues(alpha: 0.12),
+          backgroundColor: AppTheme.primary.withOpacity(0.12),
           child: Icon(icon, color: AppTheme.primary),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),

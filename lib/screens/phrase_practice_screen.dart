@@ -269,7 +269,7 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
           boxShadow: [
             BoxShadow(
               color: (isRecording ? Colors.redAccent : AppTheme.primary)
-                  .withValues(alpha: 0.35),
+                  .withOpacity(0.35),
               blurRadius: 16,
               spreadRadius: 2,
             ),

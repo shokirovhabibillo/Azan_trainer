@@ -91,7 +91,7 @@ class WavDecoder {
       throw const WavDecodeException('WAV "data" chunk topilmadi');
     }
     if (audioFormat != 1 || bitsPerSample != 16) {
-      throw const WavDecodeException(
+      throw WavDecodeException(
         'Faqat PCM16 WAV qo\'llab-quvvatlanadi (format=$audioFormat, '
         'bits=$bitsPerSample)',
       );

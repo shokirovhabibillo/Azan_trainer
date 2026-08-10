@@ -47,7 +47,7 @@ class PhraseCard extends StatelessWidget {
               const SizedBox(height: 10),
               Chip(
                 label: Text('${phrase.repeatCount} marta'),
-                backgroundColor: AppTheme.accent.withValues(alpha: 0.15),
+                backgroundColor: AppTheme.accent.withOpacity(0.15),
               ),
             ],
             const SizedBox(height: 6),
