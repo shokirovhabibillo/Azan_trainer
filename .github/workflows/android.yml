@@ -28,13 +28,21 @@ jobs:
 
       - name: Set applicationId
         run: |
-          sed -i 's/applicationId = "com.azontrainer.azon_trainer"/applicationId = "com.azontrainer.app"/' android/app/build.gradle.kts || true
-          sed -i 's/applicationId "com.azontrainer.azon_trainer"/applicationId "com.azontrainer.app"/' android/app/build.gradle || true
+          sed -i 's/applicationId = "com.azontrainer.azon_trainer"/applicationId = "com.azontrainer.app"/' android/app/build.gradle.kts 2>/dev/null || true
+          sed -i 's/applicationId = "com.azontrainer.azon_trainer"/applicationId = "com.azontrainer.app"/' android/app/build.gradle 2>/dev/null || true
+          sed -i 's/applicationId "com.azontrainer.azon_trainer"/applicationId "com.azontrainer.app"/' android/app/build.gradle.kts 2>/dev/null || true
+          sed -i 's/applicationId "com.azontrainer.azon_trainer"/applicationId "com.azontrainer.app"/' android/app/build.gradle 2>/dev/null || true
 
-      - name: Set minSdk to 23
+      - name: Set minSdk and compileSdk
         run: |
-          sed -i -E 's/^([[:space:]]*)minSdk[[:space:]]*=.*/\1minSdk = 23/' android/app/build.gradle.kts || true
-          sed -i -E 's/^([[:space:]]*)minSdkVersion[[:space:]]+.*/\1minSdkVersion 23/' android/app/build.gradle || true
+          sed -i -E 's/^([[:space:]]*)minSdk[[:space:]]*=.*/\1minSdk = 23/' android/app/build.gradle.kts 2>/dev/null || true
+          sed -i -E 's/^([[:space:]]*)minSdk[[:space:]]*=.*/\1minSdk = 23/' android/app/build.gradle 2>/dev/null || true
+          sed -i -E 's/^([[:space:]]*)minSdkVersion[[:space:]]+.*/\1minSdkVersion 23/' android/app/build.gradle.kts 2>/dev/null || true
+          sed -i -E 's/^([[:space:]]*)minSdkVersion[[:space:]]+.*/\1minSdkVersion 23/' android/app/build.gradle 2>/dev/null || true
+          sed -i -E 's/^([[:space:]]*)compileSdk[[:space:]]*=.*/\1compileSdk = 35/' android/app/build.gradle.kts 2>/dev/null || true
+          sed -i -E 's/^([[:space:]]*)compileSdk[[:space:]]*=.*/\1compileSdk = 35/' android/app/build.gradle 2>/dev/null || true
+          sed -i -E 's/^([[:space:]]*)compileSdkVersion[[:space:]]+.*/\1compileSdkVersion 35/' android/app/build.gradle.kts 2>/dev/null || true
+          sed -i -E 's/^([[:space:]]*)compileSdkVersion[[:space:]]+.*/\1compileSdkVersion 35/' android/app/build.gradle 2>/dev/null || true
 
       - name: Debug list android folder
         run: |
