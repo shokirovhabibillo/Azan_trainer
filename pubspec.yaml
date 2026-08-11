@@ -23,22 +23,27 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
-# CI muhitida record_linux-0.7.2 (record paketining Linux
-# implementatsiyasi) record_platform_interface'dagi yangi metodlarni
-# (startStream) implement qilmagani sababli kompilyatsiya xatosi
-# berdi. Biz faqat Android uchun build qilamiz — record_linux
-# runtime'da hech qachon ishlatilmaydi — lekin Dart baribir uni
-# kompilyatsiya qiladi. record_linux'ni eskiroq versiyaga tortamiz;
-# o'sha versiyaning o'z pubspec.yaml'i mos platform_interface'ni
-# avtomatik tanlaydi (aniq interface versiyasini bilish shart emas).
+# record_linux vs record_platform_interface version mismatch fix.
+# This app is Android-only; record_linux is never used at runtime,
+# but Dart still compiles it, so it must type-check successfully.
 #
-# ESLATMA: internetga ulanmagan muhitda pub.dev'dagi aniq versiya
-# tarixini tekshirib bo'lmadi — bu versiya eng ishonchli taxmin.
-# Agar bu ham yordam bermasa, xato matni ("version solving failed"
-# yoki xuddi shu turdagi "missing implementation" xatosi) qaysi
-# versiya kerakligini aniqroq ko'rsatadi.
+# Observation from two failed attempts: record_linux-0.7.2 (auto
+# picked) was only missing startStream (added in a recent interface
+# version). record_linux-0.6.0 was missing even more (hasPermission
+# signature, channels param) - so 0.7.2 is more complete, just behind
+# on the newest streaming feature.
+#
+# Fix: pin record_linux back to 0.7.2 and pin platform_interface one
+# step below 1.6.0, targeting the version before startStream was
+# added.
+#
+# NOTE: no internet access in this environment to verify exact pub.dev
+# version history - this is an evidence-based best guess, not a
+# guarantee. If it still fails, the error message will narrow it down
+# further.
 dependency_overrides:
-  record_linux: 0.6.0
+  record_linux: 0.7.2
+  record_platform_interface: 1.5.0
 
 flutter:
   uses-material-design: true
