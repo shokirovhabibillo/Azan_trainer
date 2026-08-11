@@ -153,8 +153,8 @@ void main() {
     );
     final path = await writeTempWav('no_ref.wav', wav);
 
-    final analyzer = DurationAnalyzer(
-      referenceChecker: const _FakeCheckerUnavailable(),
+    final analyzer = const DurationAnalyzer(
+      referenceChecker: _FakeCheckerUnavailable(),
     );
     final result = await analyzer.analyze(
       recordingPath: path,
