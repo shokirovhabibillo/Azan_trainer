@@ -23,7 +23,7 @@ jobs:
           flutter-version: '3.24.0'
           channel: 'stable'
 
-      - name: Generate missing platform folders (android/)
+      - name: Generate missing platform folders
         run: flutter create --platforms=android --org com.azontrainer --project-name azon_trainer .
 
       - name: Set applicationId
@@ -31,24 +31,23 @@ jobs:
           sed -i 's/applicationId = "com.azontrainer.azon_trainer"/applicationId = "com.azontrainer.app"/' android/app/build.gradle.kts || true
           sed -i 's/applicationId "com.azontrainer.azon_trainer"/applicationId "com.azontrainer.app"/' android/app/build.gradle || true
 
-      - name: Debug - list android/ folder structure
+      - name: Debug list android folder
         run: |
-          echo "--- android/ ---"
+          echo "android dir:"
           ls -la android/ || true
-          echo "--- android/app/ ---"
+          echo "android app dir:"
           ls -la android/app/ || true
 
       - name: Add microphone permission
         run: |
           sed -i 's#<manifest xmlns:android="http://schemas.android.com/apk/res/android">#<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />#' android/app/src/main/AndroidManifest.xml
 
-      - name: Provide legacy 'flutter' extension for plugin submodules
+      - name: Provide legacy flutter extension for plugin submodules
         run: |
           if [ -f android/build.gradle.kts ]; then
-            echo "Kotlin DSL (build.gradle.kts) topildi — shu yerga qo'shiladi."
-            cat >> android/build.gradle.kts << 'EOF'
+            echo "Kotlin DSL build.gradle.kts found"
+            cat >> android/build.gradle.kts << "EOF"
 
-// --- Compatibility shim (CI-only, avtomatik qo'shilgan) ---
 allprojects {
     if (project.name != "app") {
         project.extra["flutter"] = mapOf(
@@ -60,12 +59,11 @@ allprojects {
 }
 EOF
           elif [ -f android/build.gradle ]; then
-            echo "Groovy DSL (build.gradle) topildi — shu yerga qo'shiladi."
-            cat >> android/build.gradle << 'EOF'
+            echo "Groovy build.gradle found"
+            cat >> android/build.gradle << "EOF"
 
-// --- Compatibility shim (CI-only, avtomatik qo'shilgan) ---
 allprojects {
-    if (project.name != 'app') {
+    if (project.name != "app") {
         ext.flutter = [
             compileSdkVersion: 35,
             minSdkVersion: 21,
@@ -75,7 +73,7 @@ allprojects {
 }
 EOF
           else
-            echo "OGOHLANTIRISH: android/build.gradle(.kts) topilmadi!"
+            echo "WARNING android build gradle not found"
           fi
 
       - name: Install dependencies
