@@ -1,0 +1,73 @@
+name: Android Debug APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Generate missing platform folders
+        run: flutter create --platforms=android --org com.azontrainer --project-name azon_trainer .
+
+      - name: Set applicationId
+        run: |
+          sed -i 's/applicationId = "com.azontrainer.azon_trainer"/applicationId = "com.azontrainer.app"/' android/app/build.gradle.kts || true
+          sed -i 's/applicationId "com.azontrainer.azon_trainer"/applicationId "com.azontrainer.app"/' android/app/build.gradle || true
+
+      - name: Debug list android folder
+        run: |
+          echo "android dir:"
+          ls -la android/ || true
+          echo "android app dir:"
+          ls -la android/app/ || true
+
+      - name: Add microphone permission
+        run: |
+          sed -i 's#<manifest xmlns:android="http://schemas.android.com/apk/res/android">#<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />#' android/app/src/main/AndroidManifest.xml
+
+      - name: Provide legacy flutter extension for plugin submodules
+        run: |
+          if [ -f android/build.gradle.kts ]; then
+            echo "Kotlin DSL build.gradle.kts found"
+            printf '\nallprojects {\n    if (project.name != "app") {\n        project.extra["flutter"] = mapOf(\n            "compileSdkVersion" to 35,\n            "minSdkVersion" to 21,\n            "targetSdkVersion" to 35\n        )\n    }\n}\n' >> android/build.gradle.kts
+          elif [ -f android/build.gradle ]; then
+            echo "Groovy build.gradle found"
+            printf '\nallprojects {\n    if (project.name != "app") {\n        ext.flutter = [\n            compileSdkVersion: 35,\n            minSdkVersion: 21,\n            targetSdkVersion: 35,\n        ]\n    }\n}\n' >> android/build.gradle
+          else
+            echo "WARNING android build gradle not found"
+          fi
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run unit tests
+        run: flutter test
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: azon-trainer-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
