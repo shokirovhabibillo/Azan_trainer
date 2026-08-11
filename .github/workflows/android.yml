@@ -40,11 +40,19 @@ jobs:
           sed -i -E 's/^([[:space:]]*)minSdkVersion[[:space:]]+.*/\1minSdkVersion 23/' android/app/build.gradle.kts 2>/dev/null || true
           sed -i -E 's/^([[:space:]]*)minSdkVersion[[:space:]]+.*/\1minSdkVersion 23/' android/app/build.gradle 2>/dev/null || true
 
-      - name: Bump Kotlin Gradle plugin version
+      - name: Modernize Gradle toolchain (AGP + Kotlin + Gradle wrapper)
         run: |
+          sed -i -E 's#(distributionUrl=.*gradle-)[0-9.]+(-all\.zip)#\18.4\2#' android/gradle/wrapper/gradle-wrapper.properties 2>/dev/null || true
+          echo "gradle-wrapper.properties:"
+          cat android/gradle/wrapper/gradle-wrapper.properties || true
+
+          sed -i -E 's/(com\.android\.application"[[:space:]]*version[[:space:]]*")[^"]*(")/\1'8.3.0'\2/' android/settings.gradle 2>/dev/null || true
+          sed -i -E 's/(com\.android\.application"[[:space:]]*version[[:space:]]*")[^"]*(")/\1'8.3.0'\2/' android/settings.gradle.kts 2>/dev/null || true
+
           sed -i -E 's/(org\.jetbrains\.kotlin\.android"[[:space:]]*version[[:space:]]*")[^"]*(")/\1'1.9.22'\2/' android/settings.gradle 2>/dev/null || true
           sed -i -E 's/(org\.jetbrains\.kotlin\.android"[[:space:]]*version[[:space:]]*")[^"]*(")/\1'1.9.22'\2/' android/settings.gradle.kts 2>/dev/null || true
           sed -i -E "s/ext\.kotlin_version[[:space:]]*=[[:space:]]*['\"][^'\"]*['\"]/ext.kotlin_version = '1.9.22'/" android/build.gradle 2>/dev/null || true
+
           echo "settings.gradle plugins block:"
           grep -A 5 "plugins" android/settings.gradle || true
 
