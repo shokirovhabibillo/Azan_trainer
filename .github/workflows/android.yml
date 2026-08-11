@@ -33,16 +33,12 @@ jobs:
           sed -i 's/applicationId "com.azontrainer.azon_trainer"/applicationId "com.azontrainer.app"/' android/app/build.gradle.kts 2>/dev/null || true
           sed -i 's/applicationId "com.azontrainer.azon_trainer"/applicationId "com.azontrainer.app"/' android/app/build.gradle 2>/dev/null || true
 
-      - name: Set minSdk and compileSdk
+      - name: Set minSdk to 23
         run: |
           sed -i -E 's/^([[:space:]]*)minSdk[[:space:]]*=.*/\1minSdk = 23/' android/app/build.gradle.kts 2>/dev/null || true
           sed -i -E 's/^([[:space:]]*)minSdk[[:space:]]*=.*/\1minSdk = 23/' android/app/build.gradle 2>/dev/null || true
           sed -i -E 's/^([[:space:]]*)minSdkVersion[[:space:]]+.*/\1minSdkVersion 23/' android/app/build.gradle.kts 2>/dev/null || true
           sed -i -E 's/^([[:space:]]*)minSdkVersion[[:space:]]+.*/\1minSdkVersion 23/' android/app/build.gradle 2>/dev/null || true
-          sed -i -E 's/^([[:space:]]*)compileSdk[[:space:]]*=.*/\1compileSdk = 35/' android/app/build.gradle.kts 2>/dev/null || true
-          sed -i -E 's/^([[:space:]]*)compileSdk[[:space:]]*=.*/\1compileSdk = 35/' android/app/build.gradle 2>/dev/null || true
-          sed -i -E 's/^([[:space:]]*)compileSdkVersion[[:space:]]+.*/\1compileSdkVersion 35/' android/app/build.gradle.kts 2>/dev/null || true
-          sed -i -E 's/^([[:space:]]*)compileSdkVersion[[:space:]]+.*/\1compileSdkVersion 35/' android/app/build.gradle 2>/dev/null || true
 
       - name: Debug list android folder
         run: |
@@ -63,10 +59,10 @@ jobs:
         run: |
           if [ -f android/build.gradle.kts ]; then
             echo "Kotlin DSL build.gradle.kts found"
-            printf '\nallprojects {\n    if (project.name != "app") {\n        project.extra["flutter"] = mapOf(\n            "compileSdkVersion" to 35,\n            "minSdkVersion" to 23,\n            "targetSdkVersion" to 35\n        )\n    }\n}\n' >> android/build.gradle.kts
+            printf '\nallprojects {\n    if (project.name != "app") {\n        project.extra["flutter"] = mapOf(\n            "compileSdkVersion" to 34,\n            "minSdkVersion" to 23,\n            "targetSdkVersion" to 34\n        )\n    }\n}\n' >> android/build.gradle.kts
           elif [ -f android/build.gradle ]; then
             echo "Groovy build.gradle found"
-            printf '\nallprojects {\n    if (project.name != "app") {\n        ext.flutter = [\n            compileSdkVersion: 35,\n            minSdkVersion: 23,\n            targetSdkVersion: 35,\n        ]\n    }\n}\n' >> android/build.gradle
+            printf '\nallprojects {\n    if (project.name != "app") {\n        ext.flutter = [\n            compileSdkVersion: 34,\n            minSdkVersion: 23,\n            targetSdkVersion: 34,\n        ]\n    }\n}\n' >> android/build.gradle
           else
             echo "WARNING android build gradle not found"
           fi
