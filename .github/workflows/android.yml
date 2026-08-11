@@ -8,10 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -25,17 +23,60 @@ jobs:
           flutter-version: '3.24.0'
           channel: 'stable'
 
-      - name: Generate missing platform folders
-        run: flutter create --project-name azan_trainer --platforms=android --org com.azontrainer .
+      - name: Generate missing platform folders (android/)
+        run: flutter create --platforms=android --org com.azontrainer --project-name azon_trainer .
 
       - name: Set applicationId
         run: |
-          sed -i 's/applicationId = "com.azontrainer.azan_trainer"/applicationId = "com.azontrainer.app"/' android/app/build.gradle.kts || true
-          sed -i 's/applicationId "com.azontrainer.azan_trainer"/applicationId "com.azontrainer.app"/' android/app/build.gradle || true
+          sed -i 's/applicationId = "com.azontrainer.azon_trainer"/applicationId = "com.azontrainer.app"/' android/app/build.gradle.kts || true
+          sed -i 's/applicationId "com.azontrainer.azon_trainer"/applicationId "com.azontrainer.app"/' android/app/build.gradle || true
+
+      - name: Debug - list android/ folder structure
+        run: |
+          echo "--- android/ ---"
+          ls -la android/ || true
+          echo "--- android/app/ ---"
+          ls -la android/app/ || true
 
       - name: Add microphone permission
         run: |
           sed -i 's#<manifest xmlns:android="http://schemas.android.com/apk/res/android">#<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />#' android/app/src/main/AndroidManifest.xml
+
+      - name: Provide legacy 'flutter' extension for plugin submodules
+        run: |
+          if [ -f android/build.gradle.kts ]; then
+            echo "Kotlin DSL (build.gradle.kts) topildi — shu yerga qo'shiladi."
+            cat >> android/build.gradle.kts << 'EOF'
+
+// --- Compatibility shim (CI-only, avtomatik qo'shilgan) ---
+allprojects {
+    if (project.name != "app") {
+        project.extra["flutter"] = mapOf(
+            "compileSdkVersion" to 35,
+            "minSdkVersion" to 21,
+            "targetSdkVersion" to 35
+        )
+    }
+}
+EOF
+          elif [ -f android/build.gradle ]; then
+            echo "Groovy DSL (build.gradle) topildi — shu yerga qo'shiladi."
+            cat >> android/build.gradle << 'EOF'
+
+// --- Compatibility shim (CI-only, avtomatik qo'shilgan) ---
+allprojects {
+    if (project.name != 'app') {
+        ext.flutter = [
+            compileSdkVersion: 35,
+            minSdkVersion: 21,
+            targetSdkVersion: 35,
+        ]
+    }
+}
+EOF
+          else
+            echo "OGOHLANTIRISH: android/build.gradle(.kts) topilmadi!"
+          fi
 
       - name: Install dependencies
         run: flutter pub get
