@@ -23,6 +23,23 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
+# CI muhitida record_linux-0.7.2 (record paketining Linux
+# implementatsiyasi) record_platform_interface'dagi yangi metodlarni
+# (startStream) implement qilmagani sababli kompilyatsiya xatosi
+# berdi. Biz faqat Android uchun build qilamiz — record_linux
+# runtime'da hech qachon ishlatilmaydi — lekin Dart baribir uni
+# kompilyatsiya qiladi. record_linux'ni eskiroq versiyaga tortamiz;
+# o'sha versiyaning o'z pubspec.yaml'i mos platform_interface'ni
+# avtomatik tanlaydi (aniq interface versiyasini bilish shart emas).
+#
+# ESLATMA: internetga ulanmagan muhitda pub.dev'dagi aniq versiya
+# tarixini tekshirib bo'lmadi — bu versiya eng ishonchli taxmin.
+# Agar bu ham yordam bermasa, xato matni ("version solving failed"
+# yoki xuddi shu turdagi "missing implementation" xatosi) qaysi
+# versiya kerakligini aniqroq ko'rsatadi.
+dependency_overrides:
+  record_linux: 0.6.0
+
 flutter:
   uses-material-design: true
   assets:
