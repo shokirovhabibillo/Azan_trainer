@@ -23,27 +23,9 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
-# record_linux vs record_platform_interface version mismatch fix.
-# This app is Android-only; record_linux is never used at runtime,
-# but Dart still compiles it, so it must type-check successfully.
-#
-# Observation from two failed attempts: record_linux-0.7.2 (auto
-# picked) was only missing startStream (added in a recent interface
-# version). record_linux-0.6.0 was missing even more (hasPermission
-# signature, channels param) - so 0.7.2 is more complete, just behind
-# on the newest streaming feature.
-#
-# Fix: pin record_linux back to 0.7.2 and pin platform_interface one
-# step below 1.6.0, targeting the version before startStream was
-# added.
-#
-# NOTE: no internet access in this environment to verify exact pub.dev
-# version history - this is an evidence-based best guess, not a
-# guarantee. If it still fails, the error message will narrow it down
-# further.
 dependency_overrides:
-  record_linux: 0.7.2
-  record_platform_interface: 1.5.0
+  record_linux:
+    path: vendor/record_linux_stub
 
 flutter:
   uses-material-design: true
