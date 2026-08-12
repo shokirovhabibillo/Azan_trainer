@@ -1,180 +1,148 @@
-# Azon Trainer — v1.4 (Duration / Mad Analysis)
+# Azon Trainer — v1.7 (Audio + Analysis Persistence)
 
 Azon, Bomdod azoni va Iqomat talaffuzini mashq qilish uchun Flutter (Android) ilovasi.
 
-## Loyiha strukturasi
+v1.6 haqiqiy qurilmada muvaffaqiyatli ishlagan (Azon 7/7, Bomdod 8/8
+tartibi to'g'ri). v1.7 shu bazaga ustida qurilgan — asosiy vazifa: har
+bir jumlaning yozilgan audiosi VA tahlil natijasini jumla
+almashtirilganda ham yo'qotmaslik.
+
+## v1.7'da nima qo'shildi
+
+### 1) To'liq amaliyot holati (recording + tahlil) — jumla ID bo'yicha
+
+v1.6'da faqat recording (audio) holati saqlanardi. v1.7'da bu
+`PhrasePracticeState` modeliga kengaytirildi — endi har bir jumla
+uchun:
+- `recordingPath`
+- `recordingDuration`
+- `hasRecording` (hisoblanadi)
+- `hasAnalysis` (hisoblanadi)
+- `analysisResult` (v1.3 `PitchAnalyzer` natijasi, keshlangan)
+- `durationResult` (v1.4 `DurationAnalyzer` natijasi, keshlangan)
+
+saqlanadi. Bu holat `PracticeSessionController` (sof Dart, testlanadigan
+klass) ichida, `Map<String, PhrasePracticeState>` sifatida, jumla ID
+bo'yicha turadi.
+
+### 2) Oldingi jumlaga qaytganda — audio VA tahlil darhol tiklanadi
+
+`PhrasePracticeScreen` endi `initState()`da:
+1. Ota-onadan kelgan `initialState`ni tekshiradi.
+2. Agar recording bo'lsa, **audio faylning diskda amalda mavjudligini**
+   tekshiradi (`File(path).exists()`) — faqat xotiradagi yo'lga
+   ishonib qolmaydi. Fayl topilmasa, jumla "yozilmagan" deb qayta
+   belgilanadi.
+3. Fayl mavjud bo'lsa, "Yozib olindi (Xs)", "Eshitish", "Qayta yozish"
+   va (agar tahlil qilingan bo'lsa) "✓ Tahlil tayyor" ko'rsatiladi.
+
+### 3) Audio shu jumlaning o'zida eshitiladi (o'zgarmadi, tasdiqlandi)
+
+"▶ Eshitish" va "↻ Qayta yozish" — bularning ikkalasi ham xuddi
+avvalgidek FAQAT joriy jumlaning `_recordingPath`idan foydalanadi.
+Yangi recording avtomatik ravishda eski recordingni (va unga tegishli
+eski tahlil natijasini) shu jumla uchun almashtiradi.
+
+### 4) Tahlil natijasi jumla (aniqrog'i, audio) bilan bog'lanadi
+
+`ResultScreen`ga ikkita yangi, ixtiyoriy parametr qo'shildi:
+- `cachedResult` / `cachedDurationResult` — agar berilsa, tahlil UMUMAN
+  qayta hisoblanmaydi (`PitchAnalyzer`/`DurationAnalyzer` chaqirilmaydi).
+- `onAnalysisComputed` — tahlil YANGIDAN hisoblanganda, natija shu
+  callback orqali `PhrasePracticeScreen`ga qaytariladi, u esa buni
+  `PracticeSessionController`ga saqlaydi.
+
+Boshqa jumlaga o'tib, keyin qaytilganda — "✓ Tahlil tayyor" ko'rinadi
+va uni bosish orqali **qayta hisoblamasdan**, saqlangan natija
+ko'rsatiladi.
+
+MUHIM: bu FAQAT saqlash/tiklash mexanizmi. `PitchAnalyzer`,
+`DurationAnalyzer` va ularning algoritmlari bitta qator ham
+o'zgartirilmadi.
+
+### 5) "Natijalar" ro'yxati ekrani (yangi)
+
+`PracticeScreen`ning AppBar'iga yangi tugma (📋 "Natijalar") qo'shildi.
+Bosilganda `AzonResultsScreen` ochiladi — barcha jumlalar ro'yxati:
 
 ```
-lib/
-  main.dart
-  core/
-    constants.dart
-    theme.dart
-  models/
-    phrase.dart
-    maqam.dart
-    analysis_result.dart
-    duration_comparison_result.dart   # v1.4: YANGI
-    practice_session.dart
-    pitch_frame.dart
-    reference_comparison_result.dart
-  data/
-    phrase_catalog.dart
-  services/
-    audio/
-      audio_recorder_service.dart
-      audio_player_service.dart
-      reference_audio_checker.dart
-      reference_audio_loader.dart
-    analysis/
-      audio_analyzer.dart
-      pitch_analyzer.dart                # O'ZGARMAGAN (v1.3'dan)
-      pitch_contour_extractor.dart       # O'ZGARMAGAN - v1.4 talabi
-      reference_pitch_comparator.dart    # O'ZGARMAGAN - v1.4 talabi
-      wav_decoder.dart                   # O'ZGARMAGAN - v1.4 talabi
-      yin_pitch_detector.dart            # O'ZGARMAGAN - v1.4 talabi
-      duration_analyzer.dart             # v1.4: YANGI, mustaqil servis
-    progress_service.dart
-  screens/
-    home_screen.dart
-    practice_screen.dart
-    phrase_practice_screen.dart
-    result_screen.dart                   # v1.4: + Duration kartochkasi
-  widgets/
-    phrase_card.dart
-    metric_tile.dart
-    dual_pitch_contour_chart.dart
-assets/audio/                            # Reference audio (.wav) - HALI YO'Q
-.github/workflows/android.yml            # pub get -> analyze -> test -> build
-test/
-  pitch_analyzer_test.dart
-  reference_pitch_comparator_test.dart
-  reference_audio_integration_test.dart
-  duration_analyzer_test.dart             # v1.4: YANGI, 8 test
-  helpers/wav_test_helper.dart
+1/7 — Allohu akbar — Audio: ✓  Tahlil: ✓
+2/7 — Ashhadu an laa ilaaha illalloh — Audio: ✓  Tahlil: —
+...
+7/7 — Laa ilaaha illalloh — Audio: —  Tahlil: —
 ```
 
-## v1.4'da nima o'zgardi (va nima QASDDAN o'zgarmadi)
+Jumlaga bosilganda ro'yxat yopiladi va `PracticeScreen` o'sha jumlaga
+o'tadi — uning to'liq holati (audio + tahlil, agar bo'lsa) qayta
+ko'rinadi.
 
-**QASDDAN O'ZGARTIRILMAGAN (talab bo'yicha, aynan shu maqsadda tekshirildi):**
+### 6) Kelajakdagi persistence uchun tayyor arxitektura
+
+`PracticeSessionController` — sof Dart, Flutter widget'lariga bog'liq
+emas. Hozircha faqat sessiya davomida (xotirada) saqlaydi, lekin butun
+ilova shu BITTA interfeys orqali ishlaydi — kelajakda uni
+Hive/SQLite/SharedPreferences bilan ta'minlangan implementatsiyaga
+almashtirish (yoki `load()`/`persist()` metodlarini qo'shish) katta
+o'zgarishlarsiz amalga oshadi.
+
+## O'zgargan/qo'shilgan fayllar
+
+| Fayl | Holat |
+|---|---|
+| `lib/models/phrase_practice_state.dart` | YANGI |
+| `lib/services/practice_session_controller.dart` | YANGI |
+| `lib/screens/azon_results_screen.dart` | YANGI |
+| `lib/screens/practice_screen.dart` | O'zgardi (controller, "Natijalar" tugmasi) |
+| `lib/screens/phrase_practice_screen.dart` | O'zgardi (PhrasePracticeState, fayl tekshiruvi, kesh) |
+| `lib/screens/result_screen.dart` | O'zgardi (cachedResult/onAnalysisComputed — orkestratsiya, algoritm emas) |
+| `test/practice_session_controller_test.dart` | YANGI, 9 test |
+
+## Himoyalangan fayllar — o'zgarmagan (diff bilan tasdiqlangan)
+
 - `yin_pitch_detector.dart`
 - `pitch_contour_extractor.dart`
 - `reference_pitch_comparator.dart`
-- `wav_decoder.dart`
-- Mavjud reference-comparison (`PitchAnalyzer`ning reference pipeline qismi)
+- `wav_decoder.dart` (v1.4'dagi 1-so'zlik `const`-fixdan beri o'zgarmagan)
+- `pitch_analyzer.dart`
+- `duration_analyzer.dart`
+- `duration_comparison_result.dart`
 
-Bularning har biri v1.3 versiyasi bilan `diff` orqali solishtirilib,
-**bayt-baytiga bir xilligi tasdiqlandi** (pastdagi "Tekshiruv
-natijalari" bo'limida).
+## Iqomat va reference audio — v1.7'da tegilmagan
 
-**YANGI (v1.4):**
-- `lib/models/duration_comparison_result.dart`
-- `lib/services/analysis/duration_analyzer.dart`
-- `ResultScreen`ga alohida "Duration" kartochkasi
-- `test/duration_analyzer_test.dart` - 8 test
-
-## Duration/Mad tahlili - maqsad va pipeline
-
-```
-User WAV      -> WavDecoder -> PitchContourExtractor -> total + faol davomiylik
-                                    (BIR XIL kod, o'zgarmagan)
-Reference WAV -> WavDecoder -> PitchContourExtractor -> total + faol davomiylik
-  (agar mavjud)
-                       |
-                       v
-       duration difference, duration ratio
-                       |
-                       v
-   threshold-based TEXNIK feedback (diniy hukm emas)
-```
-
-`DurationAnalyzer` - `PitchAnalyzer`dan **butunlay mustaqil**: o'z
-ichida `WavDecoder` va `PitchContourExtractor`ni (ikkalasi ham
-o'zgarmagan) alohida chaqiradi. `ResultScreen` ikkalasini **parallel,
-bir-biridan bexabar** chaqiradi (`Future`larni bir vaqtda boshlab,
-keyin ikkisini ham kutish) va natijalarni faqat ko'rsatish maqsadida
-birlashtiradi - biri ikkinchisiga bog'liq emas (talab #8).
-
-## Hisoblanadigan qiymatlar
-
-`DurationComparisonResult` modelida:
-
-- `userDurationMs` / `referenceDurationMs` - umumiy fayl davomiyligi
-- `userActiveDurationMs` / `referenceActiveDurationMs` - **faol
-  (voiced) davomiylik**: birinchi va oxirgi voiced freym orasidagi
-  oraliq + bitta hop davomiyligi. Bu boshidagi va oxiridagi jimlikni
-  (masalan, foydalanuvchi tugmani bosib, keyin gapira boshlagan vaqt)
-  hisobga OLMAYDI - faqat umumiy fayl uzunligiga tayanib xato
-  natija berilmasligi shu orqali ta'minlanadi (talab #3).
-- `durationDifferenceMs` = userActive - referenceActive
-- `durationRatio` = userActive / referenceActive
-- `userVoicedRatio` / `referenceVoicedRatio` - voiced freymlar ulushi
-
-## Feedback - faqat texnik, diniy hukm emas
-
-Thresholdlar `DurationAnalyzer` ichida alohida nomlangan constant
-sifatida saqlanadi (`minActiveDurationMs = 300`,
-`closeRatioLowerBound = 0.85`, `closeRatioUpperBound = 1.15`) -
-kelajakda tajvid/mad ekspertizasi asosida osongina almashtirilishi
-uchun.
-
-Ustuvorlik tartibida:
-1. Faol davomiylik (user yoki reference) 300ms'dan kam ->
-   **"Faol ovozli qism juda qisqa."**
-2. Ratio [0.85, 1.15] oralig'ida -> **"Reference bilan davomiylik juda
-   yaqin."**
-3. Ratio < 0.85 -> **"User phrase reference'dan qisqaroq."**
-4. Ratio > 1.15 -> **"User phrase reference'dan uzunroq."**
-5. Reference umuman mavjud emas -> **"Reference audio mavjud emas -
-   duration comparison bajarilmadi."**
-
-Bu xabarlarning hech biri "to'g'ri/noto'g'ri o'qildi" degan diniy
-baho bermaydi - faqat ikki audio faylning davomiyligi qanday
-solishtirilganini tasvirlaydi.
-
-## Result screen - Duration kartochkasi
-
-Reference mavjud bo'lganda: User / Reference / Farq / Feedback to'rt
-qatorli kartochka. Reference mavjud bo'lmaganda: "Reference duration
-mavjud emas" holati va faqat foydalanuvchining faol davomiyligi
-ko'rsatiladi (agar hisoblangan bo'lsa).
-
-## Reference audio - hali yo'q (o'zgarmadi)
-
-`assets/audio/` ichida haqiqiy WAV fayllar hamon yo'q va ular
-sun'iy/demo audio bilan almashtirilmadi. `DurationAnalyzer` xuddi
-`PitchAnalyzer` kabi `ReferenceAudioChecker`/`ReferenceAudioLoader`
-orqali ishlaydi - real WAV fayllar `assets/audio/`ga qo'shilgan
-zahoti, kod o'zgarishisiz avtomatik ishlay boshlaydi.
+Iqomat hozircha faqat "Qad qoomatis-solaah" bilan turibdi (kengaytirish
+keyingi bosqichda). Reference audio fayllari hali `assets/audio/`ga
+qo'shilmagan — "Reference audio hali qo'shilmagan" xabari normal holat.
 
 ## Testlar (`flutter test`)
 
 - `test/reference_pitch_comparator_test.dart` (6, o'zgarmagan)
 - `test/pitch_analyzer_test.dart` (5, o'zgarmagan)
-- `test/reference_audio_integration_test.dart` (9, o'zgarmagan)
-- `test/duration_analyzer_test.dart` (**8 YANGI, v1.4**):
-  1. User va reference davomiyligi bir xil -> `veryClose`
-  2. User sezilarli qisqaroq -> `userShorter`
-  3. User sezilarli uzunroq -> `userLonger`
-  4. Reference mavjud emas -> `notAvailable`, fake natija yo'q
-  5. Leading/trailing silence - faol davomiylik umumiy fayldan
-     sezilarli kichik ekanligi (windowing chegara effektlariga
-     chidamli tarzda, nisbat orqali tekshirilgan)
-  6. Juda qisqa audio (0.15s) -> `activeTooShort`
-  7. Faqat silence -> `activeTooShort`, faol davomiylik = 0
-  8. Normal voiced audio - asosiy statistikalar (davomiylik, voiced
-     ratio) to'g'ri hisoblanishi
+- `test/duration_analyzer_test.dart` (8, o'zgarmagan)
+- `test/reference_audio_integration_test.dart` (11, o'zgarmagan)
+- `test/practice_session_controller_test.dart` (**9 YANGI**):
+  1. 1/7 recording → 2/7 → 1/7 ga qaytish → recording saqlangan
+  2. 1/7 va 2/7 recordinglari mustaqil, aralashmaydi
+  3. Tahlil natijasi jumla bilan bog'lanib saqlanadi (boshqa jumlaga
+     o'tib qaytilganda ham)
+  4a. Qayta yozish — eski recording yangisi bilan almashadi
+  4b. `withNewRecording` eski tahlil natijasini bekor qilishi
+  5a. Oddiy azon — 7 ta jumla, yakuniy takbir to'g'ri joyda
+  5b. Bomdod azoni — 8 ta jumla, Bomdod qo'shimchasi + yakuniy takbir
+      to'g'ri tartibda
+  - Qo'shimcha: bo'sh holat, `recordedCount`/`analyzedCount` hisoblari
 
-Barcha testlar `assets/audio/`ga hech narsa yozmaydi - reference
-mavjudligi `ReferenceAudioChecker`/`ReferenceAudioLoader`ning test
-doirasidagi (xotiradagi) fake implementatsiyalari orqali simulyatsiya
-qilinadi (v1.3'dagi bilan bir xil pattern).
+**Eslatma:** bu testlar `PracticeSessionController`ni (sof Dart,
+platform-kanallariga bog'liq bo'lmagan) to'g'ridan-to'g'ri sinaydi —
+bu butun v1.7 tuzatishining "yuragi". `PhrasePracticeScreen`/
+`PracticeScreen` widget'larining o'zi haqiqiy mikrofon/fayl tizimi
+platform-kanallariga bog'liq (`AudioRecorderService` dependency-inject
+qilinmagan), shuning uchun to'liq widget-test qilish "minimal fix"
+doirasidan tashqariga chiqadi — bu ochiq aytiladi.
 
 ## GitHub Actions
 
-`.github/workflows/android.yml`: `flutter pub get` -> `flutter analyze`
-(continue-on-error YO'Q, v1.3'dan meros) -> `flutter test` ->
-`flutter build apk --debug`. Ketma-ketlik o'zgarmadi.
+`.github/workflows/android.yml` — v1.6'da haqiqiy qurilmada
+muvaffaqiyatli natija bergan holatda — **o'zgarmadi**.
 
 ## Build (lokal)
 
@@ -183,39 +151,46 @@ flutter pub get
 flutter run
 ```
 
-## Tekshiruv natijalari - nima REAL bajarildi, nima bajarilmadi
+## Tekshiruv natijalari — nima REAL bajarildi, nima bajarilmadi
 
-**Ochiq eslatma (yashirilmaydi):** bu kod Flutter/Dart SDK
-o'rnatilmagan sandbox muhitda yozilgan (tarmoq sozlamalari
-`storage.googleapis.com`ni bloklaydi).
+**Ochiq eslatma:** bu kod Flutter/Dart SDK o'rnatilmagan sandbox
+muhitda yozilgan.
 
-### REAL bajarilgan tekshiruvlar:
-- `diff` orqali `yin_pitch_detector.dart`, `pitch_contour_extractor.dart`,
-  `reference_pitch_comparator.dart`, `wav_decoder.dart` fayllarining
-  v1.3 bilan **bayt-baytiga bir xilligi** dasturiy tasdiqlandi
-  (natija: 4 fayl ham "IDENTICAL").
-- `DurationAnalyzer`ning `_measure`/`_compare` mantig'i qo'lda,
-  qadamma-qadam sonli hisob-kitob orqali tekshirildi (masalan, test
-  #1-3, #6-8 uchun frame-by-frame RMS/voiced chegaralari qo'lda
-  hisoblanib, kutilgan natija bilan solishtirildi).
-- Test #5 (leading/trailing silence) uchun boshlang'ich qattiq
-  assertion ("aynan veryClose bo'lishi kerak") **noto'g'ri chiqishi
-  mumkinligi qo'lda hisob-kitob orqali aniqlandi** (sliding-window
-  freym chegaralari sabab ~10-20% qo'shimcha og'ish beradi) - shuning
-  uchun test windowing-artefaktlariga chidamli, faqat "trimming
-  ishladi" faktini tekshiradigan shaklga o'zgartirildi.
-- Barcha yangi fayllar import/unused-variable nuqtai nazaridan qo'lda
-  tekshirildi.
+### REAL bajarilgan:
+- `diff` orqali barcha himoyalangan fayllarning (YIN, pitch contour
+  extractor, reference comparator, WAV decoder, pitch analyzer,
+  duration analyzer, duration comparison result) v1.3/v1.4 bilan
+  bayt-baytiga bir xilligi tasdiqlandi.
+- Yangi model/controller/ekranlarning barcha import va metod
+  signaturalari qo'lda tekshirildi.
+- Azon 7/7 va Bomdod 8/8 tartibi skript orqali qayta hisoblab
+  tasdiqlandi (test fayli ichida ham mavjud).
 
-### REAL bajarilMAGAN tekshiruvlar:
-- `flutter pub get`, `flutter analyze`, `flutter test`,
-  `flutter build apk --debug` - bu buyruqlar sandbox'da Flutter SDK
-  yo'qligi sababli **haqiqatda ishga tushirilmadi**. Xususan, YIN
-  algoritmi orqali sun'iy sinusoida signalidan chastota qanchalik
-  aniq chiqishi (voiced/unvoiced chegaralari) faqat qo'lda,
-  RMS-asoslangan mantiq darajasida tekshirildi - YIN'ning haqiqiy
-  chiqishi (masalan, chekka freymlarda) biroz farq qilishi mumkin.
-  Push qilingandan keyin GitHub Actions natijasini albatta
-  tekshiring. Agar biror test kutilmagan natija bersa (ayniqsa test
-  #2/#3 dagi qattiq threshold solishtirishlari), log bilan qaytsangiz,
-  darhol tuzataman.
+### REAL bajarilMAGAN — aniq va ochiq:
+**`flutter pub get`, `flutter analyze`, `flutter test`,
+`flutter build apk --debug` — bu sandbox'da Flutter SDK yo'qligi
+sababli HAQIQATDA ISHGA TUSHIRILMADI.**
+
+Flutter SDK unavailable — build not executed.
+
+GitHub Actions workflow (`.github/workflows/android.yml`) o'zgarishsiz
+qoldirildi va real build uchun tayyor — push qilingandan keyin
+natijani albatta tekshiring.
+
+## v1.7'ni qurilmada qanday tekshirish kerak
+
+1. Azon (yoki Bomdod) mashqini boshlang.
+2. 1/7 da ovoz yozing, "Eshitish" bilan tekshiring.
+3. "Keyingi jumla →" orqali 2/7, 3/7 ga o'ting, har birida ovoz yozing.
+4. 4/7 ga o'ting (yozmasdan).
+5. "← Oldingi jumla" orqali 3/7, 2/7, 1/7 ga birma-bir qayting —
+   **har birida aynan o'sha jumlaning o'z audiosi** ("Yozib olindi",
+   "Eshitish", "Qayta yozish") ko'rinishi kerak.
+6. 1/7 da "Tahlil qilish"ni bosing, natijani ko'ring, ortga qayting.
+7. 2/7, 3/7 ga o'ting va yana 1/7 ga qayting — "✓ Tahlil tayyor"
+   ko'rinishi va uni bosganda **darhol** (qayta hisoblamasdan) avvalgi
+   natija ochilishi kerak.
+8. AppBar'dagi 📋 ("Natijalar") tugmasini bosing — barcha 7 jumla
+   ro'yxati, har birining audio/tahlil holati bilan ko'rinishi kerak.
+9. Ro'yxatdan istalgan jumlani bosing — o'sha jumlaga o'tilishi va
+   holati to'g'ri tiklanishi kerak.

@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:audioplayers/audioplayers.dart' show PlayerState;
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
+import '../models/analysis_result.dart';
+import '../models/duration_comparison_result.dart';
 import '../models/phrase.dart';
+import '../models/phrase_practice_state.dart';
 import '../models/practice_session.dart';
 import '../services/audio/audio_player_service.dart';
 import '../services/audio/audio_recorder_service.dart';
@@ -15,11 +20,28 @@ enum _RecordState { idle, recording, recorded }
 
 class PhrasePracticeScreen extends StatefulWidget {
   final Phrase phrase;
+
+  /// v1.7: shu jumla uchun oldin yozib olingan audio va (agar mavjud
+  /// bo'lsa) tahlil natijasi. `PracticeScreen`dan (aniqrog'i, uning
+  /// `PracticeSessionController`idan) keladi — jumlalar orasida
+  /// o'tishda to'liq holatni tiklash uchun ishlatiladi.
+  final PhrasePracticeState? initialState;
+
+  /// v1.7: holat o'zgarganda (yangi yozuv, qayta yozish, yangi tahlil
+  /// natijasi) ota-ona darhol xabardor qilinadi — `null` uzatilsa,
+  /// bu jumla uchun holat butunlay tozalanadi (masalan, "Qayta
+  /// yozish" bosilganda, yangi yozuv tugagunga qadar).
+  final ValueChanged<PhrasePracticeState?> onStateChanged;
+
+  final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
   const PhrasePracticeScreen({
     super.key,
     required this.phrase,
+    required this.onStateChanged,
+    this.initialState,
+    this.onPrevious,
     this.onNext,
   });
 
@@ -38,6 +60,13 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
   Duration _recordedDuration = Duration.zero;
   String? _errorMessage;
 
+  /// v1.7: shu jumla uchun keshlangan tahlil natijasi (agar bo'lsa).
+  /// Bu qiymatlar mavjud bo'lsa, "Tahlil qilish" bosilganda
+  /// PitchAnalyzer/DurationAnalyzer QAYTA chaqirilmaydi — to'g'ridan
+  /// to'g'ri saqlangan natija ko'rsatiladi.
+  AnalysisResult? _cachedAnalysisResult;
+  DurationComparisonResult? _cachedDurationResult;
+
   /// v1.2: reference tugmasi mavjudlikka qarab yoqilgan/o'chirilgan
   /// bo'lishi kerak (talab #5). null = hali tekshirilmoqda.
   bool? _referenceAvailable;
@@ -48,11 +77,38 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
   @override
   void initState() {
     super.initState();
+    _restoreInitialState();
     _checkReferenceAvailability();
     _player.onStateChanged.listen((state) {
       if (!mounted) return;
       setState(() => _referencePlayerState = state);
     });
+  }
+
+  /// v1.7: ota-onadan kelgan holatni tiklaydi — lekin avval audio
+  /// faylning DISKDA amalda mavjudligini tekshiradi (talab #2: "Audio
+  /// path faqat xotirada emas, amalda mavjud faylga ishora qilishi
+  /// tekshirilsin"). Fayl topilmasa, bu jumla "yozilmagan" deb
+  /// hisoblanadi va ota-onadagi holat ham tozalanadi.
+  Future<void> _restoreInitialState() async {
+    final initial = widget.initialState;
+    if (initial == null || !initial.hasRecording) return;
+
+    final path = initial.recordingPath!;
+    final exists = await File(path).exists();
+    if (!mounted) return;
+
+    if (exists) {
+      setState(() {
+        _state = _RecordState.recorded;
+        _recordingPath = path;
+        _recordedDuration = initial.recordingDuration;
+        _cachedAnalysisResult = initial.analysisResult;
+        _cachedDurationResult = initial.durationResult;
+      });
+    } else {
+      widget.onStateChanged(null);
+    }
   }
 
   Future<void> _checkReferenceAvailability() async {
@@ -97,7 +153,19 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
           _state = _RecordState.recorded;
           _recordingPath = outcome?.filePath;
           _recordedDuration = outcome?.duration ?? Duration.zero;
+          // v1.7: yangi recording eski tahlil natijasini bekor qiladi
+          // — u ESKI audioga tegishli edi.
+          _cachedAnalysisResult = null;
+          _cachedDurationResult = null;
         });
+        if (_recordingPath != null) {
+          widget.onStateChanged(
+            PhrasePracticeState(
+              recordingPath: _recordingPath!,
+              recordingDuration: _recordedDuration,
+            ),
+          );
+        }
       } else {
         await _recorder.start(phraseId: widget.phrase.id);
         setState(() => _state = _RecordState.recording);
@@ -115,7 +183,10 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
       _state = _RecordState.idle;
       _recordingPath = null;
       _recordedDuration = Duration.zero;
+      _cachedAnalysisResult = null;
+      _cachedDurationResult = null;
     });
+    widget.onStateChanged(null);
   }
 
   Future<void> _goToAnalysis() async {
@@ -134,6 +205,48 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
         builder: (_) => ResultScreen(
           phrase: widget.phrase,
           recordingPath: _recordingPath!,
+          // v1.7: agar bu jumla uchun tahlil oldin hisoblangan bo'lsa,
+          // shu yerdan uzatamiz — ResultScreen uni qayta hisoblamaydi.
+          cachedResult: _cachedAnalysisResult,
+          cachedDurationResult: _cachedDurationResult,
+          onAnalysisComputed: (result, durationResult) {
+            if (!mounted) return;
+            setState(() {
+              _cachedAnalysisResult = result;
+              _cachedDurationResult = durationResult;
+            });
+            widget.onStateChanged(
+              PhrasePracticeState(
+                recordingPath: _recordingPath!,
+                recordingDuration: _recordedDuration,
+                analysisResult: result,
+                durationResult: durationResult,
+              ),
+            );
+          },
+          onRetry: () {
+            Navigator.of(context).pop();
+            _reRecord();
+          },
+        ),
+      ),
+    );
+  }
+
+  /// v1.7: keshlangan natijaga qayta o'tish uchun (qayta hisoblamasdan).
+  void _reopenCachedAnalysis() {
+    if (_recordingPath == null ||
+        _cachedAnalysisResult == null ||
+        _cachedDurationResult == null) {
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ResultScreen(
+          phrase: widget.phrase,
+          recordingPath: _recordingPath!,
+          cachedResult: _cachedAnalysisResult,
+          cachedDurationResult: _cachedDurationResult,
           onRetry: () {
             Navigator.of(context).pop();
             _reRecord();
@@ -145,6 +258,9 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final hasCachedAnalysis =
+        _cachedAnalysisResult != null && _cachedDurationResult != null;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -193,17 +309,53 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
               ],
             ),
             const SizedBox(height: 12),
+            if (hasCachedAnalysis) ...[
+              GestureDetector(
+                onTap: _reopenCachedAnalysis,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.check_circle, color: Colors.green, size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      'Tahlil tayyor',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             ElevatedButton.icon(
-              onPressed: _goToAnalysis,
+              onPressed:
+                  hasCachedAnalysis ? _reopenCachedAnalysis : _goToAnalysis,
               icon: const Icon(Icons.insights),
-              label: const Text('Tahlil qilish'),
+              label: Text(
+                hasCachedAnalysis ? 'Natijani ko\'rish' : 'Tahlil qilish',
+              ),
             ),
           ],
-          if (widget.onNext != null) ...[
+          if (widget.onPrevious != null || widget.onNext != null) ...[
             const SizedBox(height: 24),
-            TextButton(
-              onPressed: widget.onNext,
-              child: const Text('Keyingi jumlaga o\'tish →'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.onPrevious != null)
+                  TextButton(
+                    onPressed: widget.onPrevious,
+                    child: const Text('← Oldingi jumla'),
+                  ),
+                if (widget.onPrevious != null && widget.onNext != null)
+                  const SizedBox(width: 16),
+                if (widget.onNext != null)
+                  TextButton(
+                    onPressed: widget.onNext,
+                    child: const Text('Keyingi jumlaga o\'tish →'),
+                  ),
+              ],
             ),
           ],
         ],

@@ -1,7 +1,7 @@
 name: azon_trainer
-description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.4 - Duration/Mad Analysis).
+description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.7 - Audio + Analysis Persistence).
 publish_to: "none"
-version: 0.1.4+1
+version: 0.1.7+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

@@ -15,11 +15,29 @@ class ResultScreen extends StatefulWidget {
   final String recordingPath;
   final VoidCallback onRetry;
 
+  /// v1.7: agar bu jumla uchun tahlil oldin allaqachon hisoblangan
+  /// bo'lsa (masalan, foydalanuvchi boshqa jumlaga o'tib qaytgan
+  /// bo'lsa), keshlangan natija shu yerdan uzatiladi — tahlil QAYTA
+  /// hisoblanmaydi (PitchAnalyzer/DurationAnalyzer chaqirilmaydi).
+  final AnalysisResult? cachedResult;
+  final DurationComparisonResult? cachedDurationResult;
+
+  /// v1.7: tahlil YANGIDAN hisoblanganda (keshlanmagan holatda),
+  /// natija shu callback orqali chaqiruvchiga (PhrasePracticeScreen)
+  /// qaytariladi — u buni PracticeSessionController'ga saqlaydi.
+  final void Function(
+    AnalysisResult result,
+    DurationComparisonResult durationResult,
+  )? onAnalysisComputed;
+
   const ResultScreen({
     super.key,
     required this.phrase,
     required this.recordingPath,
     required this.onRetry,
+    this.cachedResult,
+    this.cachedDurationResult,
+    this.onAnalysisComputed,
   });
 
   @override
@@ -47,6 +65,18 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Future<void> _runAnalysis() async {
+    // v1.7: agar keshlangan natija bergan bo'lsak, PitchAnalyzer/
+    // DurationAnalyzer'ni umuman chaqirmasdan, to'g'ridan-to'g'ri
+    // shuni ko'rsatamiz — tahlil algoritmi qayta ishlamaydi.
+    if (widget.cachedResult != null && widget.cachedDurationResult != null) {
+      setState(() {
+        _result = widget.cachedResult;
+        _durationResult = widget.cachedDurationResult;
+        _loading = false;
+      });
+      return;
+    }
+
     final pitchFuture = _analyzer.analyze(
       recordingPath: widget.recordingPath,
       referencePhrase: widget.phrase,
@@ -65,6 +95,10 @@ class _ResultScreenState extends State<ResultScreen> {
       _durationResult = durationResult;
       _loading = false;
     });
+    // v1.7: yangi hisoblangan natijani chaqiruvchiga qaytaramiz, u
+    // buni saqlab qo'yadi — keyingi safar shu jumlaga qaytilganda
+    // qayta hisoblanmaydi.
+    widget.onAnalysisComputed?.call(result, durationResult);
   }
 
   @override
