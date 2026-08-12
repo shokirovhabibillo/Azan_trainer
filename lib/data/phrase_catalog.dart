@@ -62,6 +62,20 @@ class PhraseCatalog {
       // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
       maqam: Maqam.unknown,
     ),
+    // v1.5: yakuniy takbir — "Laa ilaaha illalloh"dan oldin, 2 marta
+    // aytiladigan yopuvchi "Allohu akbar". Bu jumla oldingi versiyada
+    // xato bilan tushirib qoldirilgan edi.
+    Phrase(
+      id: 'azon_allohu_akbar_closing',
+      category: PhraseCategory.azon,
+      arabicText: 'اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ',
+      transliteration: 'Allohu akbar, Allohu akbar',
+      meaningUz: 'Alloh Buyukdir, Alloh Buyukdir',
+      referenceAudioFile: 'azon_allohu_akbar_closing.wav',
+      repeatCount: 2,
+      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
+      maqam: Maqam.unknown,
+    ),
     Phrase(
       id: 'azon_laa_ilaaha_illalloh',
       category: PhraseCategory.azon,

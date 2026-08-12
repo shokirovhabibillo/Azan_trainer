@@ -9,6 +9,7 @@ qiymatlariga mos kelishi shart):
 - azon_ashhadu_anna_muhammadan.wav
 - azon_hayya_alas_solah.wav
 - azon_hayya_alal_falah.wav
+- azon_allohu_akbar_closing.wav
 - azon_laa_ilaaha_illalloh.wav
 - bomdod_assolatu_khoyrum_minan_navm.wav
 - iqomat_qad_qomatis_solah.wav

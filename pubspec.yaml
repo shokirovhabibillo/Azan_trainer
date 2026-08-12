@@ -23,6 +23,22 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
+# record_linux compile-error fix.
+#
+# This app is Android-only; record_linux is never used at runtime,
+# but the record package facade unconditionally imports it, so Dart
+# must still fully type-check it. Two attempts at pinning specific
+# published record_linux / record_platform_interface version pairs
+# (0.6.0, 0.7.2 with interface 1.6.0 and 1.5.0) all failed with the
+# same "missing implementation" errors - no available published
+# version pair was internally consistent, and this sandbox has no
+# internet access to verify pub dot dev exact version history.
+#
+# Instead of continuing to guess version numbers, record_linux is
+# replaced with a local stub package (vendor/record_linux_stub) that
+# uses Dart noSuchMethod override to satisfy all abstract members
+# automatically, regardless of their exact signatures. See that
+# package for details.
 dependency_overrides:
   record_linux:
     path: vendor/record_linux_stub

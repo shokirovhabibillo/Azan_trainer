@@ -235,6 +235,45 @@ void main() {
     });
   });
 
+  group('Yakuniy takbir (v1.5 fix) — "Laa ilaaha illalloh"dan oldin', () {
+    test('oddiy azonda yakuniy takbir mavjud, repeatCount=2, va '
+        '"Laa ilaaha illalloh"dan darhol oldin turadi', () {
+      final sequence = PhraseCatalog.azonSequence(isBomdod: false);
+
+      final closingEntries = sequence.where(
+        (p) => p.id == 'azon_allohu_akbar_closing',
+      );
+      expect(closingEntries.length, 1);
+      expect(closingEntries.first.repeatCount, 2);
+
+      final closingIndex = sequence.indexWhere(
+        (p) => p.id == 'azon_allohu_akbar_closing',
+      );
+      final laaIlaahaIndex = sequence.indexWhere(
+        (p) => p.id == 'azon_laa_ilaaha_illalloh',
+      );
+      expect(laaIlaahaIndex, closingIndex + 1);
+    });
+
+    test('Bomdod azonida yakuniy takbir Bomdod qo\'shimchasidan keyin, '
+        '"Laa ilaaha illalloh"dan oldin turadi', () {
+      final sequence = PhraseCatalog.azonSequence(isBomdod: true);
+
+      final bomdodIndex = sequence.indexWhere(
+        (p) => p.id == 'bomdod_assolatu_khoyrum_minan_navm',
+      );
+      final closingIndex = sequence.indexWhere(
+        (p) => p.id == 'azon_allohu_akbar_closing',
+      );
+      final laaIlaahaIndex = sequence.indexWhere(
+        (p) => p.id == 'azon_laa_ilaaha_illalloh',
+      );
+
+      expect(closingIndex, bomdodIndex + 1);
+      expect(laaIlaahaIndex, closingIndex + 1);
+    });
+  });
+
   group('Maqom metadata — taxmin qilinmaydi', () {
     test('barcha katalog yozuvlari uchun maqam hozircha unknown', () {
       for (final p in PhraseCatalog.all) {
