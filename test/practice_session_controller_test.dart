@@ -203,7 +203,7 @@ void main() {
     });
 
     test('v1.8: Iqomat 8 ta jumladan iborat, to\'g\'ri tartibda', () {
-      final iqomat = PhraseCatalog.iqomat;
+      const iqomat = PhraseCatalog.iqomat;
       expect(iqomat.length, 8);
 
       final ids = iqomat.map((p) => p.id).toList();
