@@ -19,7 +19,7 @@ import 'package:azon_trainer/services/practice_session_controller.dart';
 /// doirasidan tashqarida). Controllerning o'zi — butun tuzatishning
 /// yuragi — to'liq, mustaqil test qilingan.
 void main() {
-  AnalysisResult _dummyAnalysis() {
+  AnalysisResult dummyAnalysis() {
     return AnalysisResult(
       pitch: const MetricResult.notConnected('Pitch'),
       duration: const MetricResult.notConnected('Duration'),
@@ -28,7 +28,7 @@ void main() {
     );
   }
 
-  DurationComparisonResult _dummyDuration() {
+  DurationComparisonResult dummyDuration() {
     return DurationComparisonResult.notAvailable();
   }
 
@@ -97,8 +97,8 @@ void main() {
     test('Phrase tahlil qilindi -> boshqa phrase -> qaytish -> tahlil '
         'natijasi saqlangan holda qaytadi', () {
       final controller = PracticeSessionController();
-      final analysis = _dummyAnalysis();
-      final duration = _dummyDuration();
+      final analysis = dummyAnalysis();
+      final duration = dummyDuration();
 
       controller.update(
         'azon_laa_ilaaha_illalloh',
@@ -163,8 +163,8 @@ void main() {
     });
 
     test('withNewRecording eski tahlil natijasini bekor qiladi', () {
-      final analysis = _dummyAnalysis();
-      final duration = _dummyDuration();
+      final analysis = dummyAnalysis();
+      final duration = dummyDuration();
       final withAnalysis = PhrasePracticeState(
         recordingPath: '/tmp/old.wav',
         recordingDuration: const Duration(seconds: 3),
@@ -223,8 +223,8 @@ void main() {
         PhrasePracticeState(
           recordingPath: '/tmp/p2.wav',
           recordingDuration: const Duration(seconds: 1),
-          analysisResult: _dummyAnalysis(),
-          durationResult: _dummyDuration(),
+          analysisResult: dummyAnalysis(),
+          durationResult: dummyDuration(),
         ),
       );
 
