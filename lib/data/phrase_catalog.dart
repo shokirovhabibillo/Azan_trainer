@@ -15,8 +15,9 @@ class PhraseCatalog {
       meaningUz: "Alloh Buyukdir",
       referenceAudioFile: 'azon_allohu_akbar.wav',
       repeatCount: 4,
-      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
-      maqam: Maqam.unknown,
+      // v1.9: foydalanuvchi tomonidan tasdiqlangan — Bayati
+      // maqomida yozib olingan reference audio qo'shildi.
+      maqam: Maqam.bayati,
     ),
     Phrase(
       id: 'azon_ashhadu_laa_ilaaha',
@@ -26,8 +27,9 @@ class PhraseCatalog {
       meaningUz: "Guvohlik beramanki, Allohdan o'zga iloh yo'q",
       referenceAudioFile: 'azon_ashhadu_laa_ilaaha.wav',
       repeatCount: 2,
-      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
-      maqam: Maqam.unknown,
+      // v1.9: foydalanuvchi tomonidan tasdiqlangan — Bayati
+      // maqomida yozib olingan reference audio qo'shildi.
+      maqam: Maqam.bayati,
     ),
     Phrase(
       id: 'azon_ashhadu_anna_muhammadan',
@@ -37,8 +39,9 @@ class PhraseCatalog {
       meaningUz: "Guvohlik beramanki, Muhammad Allohning rasulidir",
       referenceAudioFile: 'azon_ashhadu_anna_muhammadan.wav',
       repeatCount: 2,
-      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
-      maqam: Maqam.unknown,
+      // v1.9: foydalanuvchi tomonidan tasdiqlangan — Bayati
+      // maqomida yozib olingan reference audio qo'shildi.
+      maqam: Maqam.bayati,
     ),
     Phrase(
       id: 'azon_hayya_alas_solah',
@@ -48,8 +51,9 @@ class PhraseCatalog {
       meaningUz: 'Namozga shoshiling',
       referenceAudioFile: 'azon_hayya_alas_solah.wav',
       repeatCount: 2,
-      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
-      maqam: Maqam.unknown,
+      // v1.9: foydalanuvchi tomonidan tasdiqlangan — Bayati
+      // maqomida yozib olingan reference audio qo'shildi.
+      maqam: Maqam.bayati,
     ),
     Phrase(
       id: 'azon_hayya_alal_falah',
@@ -59,8 +63,9 @@ class PhraseCatalog {
       meaningUz: 'Najotga shoshiling',
       referenceAudioFile: 'azon_hayya_alal_falah.wav',
       repeatCount: 2,
-      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
-      maqam: Maqam.unknown,
+      // v1.9: foydalanuvchi tomonidan tasdiqlangan — Bayati
+      // maqomida yozib olingan reference audio qo'shildi.
+      maqam: Maqam.bayati,
     ),
     // v1.5: yakuniy takbir — "Laa ilaaha illalloh"dan oldin, 2 marta
     // aytiladigan yopuvchi "Allohu akbar". Bu jumla oldingi versiyada
@@ -73,8 +78,9 @@ class PhraseCatalog {
       meaningUz: 'Alloh Buyukdir, Alloh Buyukdir',
       referenceAudioFile: 'azon_allohu_akbar_closing.wav',
       repeatCount: 2,
-      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
-      maqam: Maqam.unknown,
+      // v1.9: foydalanuvchi tomonidan tasdiqlangan — Bayati
+      // maqomida yozib olingan reference audio qo'shildi.
+      maqam: Maqam.bayati,
     ),
     Phrase(
       id: 'azon_laa_ilaaha_illalloh',
@@ -84,8 +90,9 @@ class PhraseCatalog {
       meaningUz: "Allohdan o'zga iloh yo'q",
       referenceAudioFile: 'azon_laa_ilaaha_illalloh.wav',
       repeatCount: 1,
-      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
-      maqam: Maqam.unknown,
+      // v1.9: foydalanuvchi tomonidan tasdiqlangan — Bayati
+      // maqomida yozib olingan reference audio qo'shildi.
+      maqam: Maqam.bayati,
     ),
   ];
 
@@ -102,7 +109,66 @@ class PhraseCatalog {
     maqam: Maqam.unknown,
   );
 
+  /// v1.8: To'liq Hanafiy iqomat tuzilishi (8 jumla). Ko'pchilik
+  /// jumlalar 1 marta aytiladi (Azondagi 2 martadan farqli) — faqat
+  /// ochish/yopish takbiri va "Qad qoomatis-solaah"ning o'zi 2
+  /// martadan.
   static const List<Phrase> iqomat = [
+    Phrase(
+      id: 'iqomat_allohu_akbar_opening',
+      category: PhraseCategory.iqomat,
+      arabicText: 'اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ',
+      transliteration: 'Allohu akbar, Allohu akbar',
+      meaningUz: 'Alloh Buyukdir, Alloh Buyukdir',
+      referenceAudioFile: 'iqomat_allohu_akbar_opening.wav',
+      repeatCount: 2,
+      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
+      maqam: Maqam.unknown,
+    ),
+    Phrase(
+      id: 'iqomat_ashhadu_laa_ilaaha',
+      category: PhraseCategory.iqomat,
+      arabicText: 'أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا اللَّهُ',
+      transliteration: 'Ashhadu an laa ilaaha illalloh',
+      meaningUz: "Guvohlik beramanki, Allohdan o'zga iloh yo'q",
+      referenceAudioFile: 'iqomat_ashhadu_laa_ilaaha.wav',
+      repeatCount: 1,
+      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
+      maqam: Maqam.unknown,
+    ),
+    Phrase(
+      id: 'iqomat_ashhadu_anna_muhammadan',
+      category: PhraseCategory.iqomat,
+      arabicText: 'أَشْهَدُ أَنَّ مُحَمَّدًا رَسُولُ اللَّهِ',
+      transliteration: 'Ashhadu anna Muhammadar rosulullohi',
+      meaningUz: "Guvohlik beramanki, Muhammad Allohning rasulidir",
+      referenceAudioFile: 'iqomat_ashhadu_anna_muhammadan.wav',
+      repeatCount: 1,
+      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
+      maqam: Maqam.unknown,
+    ),
+    Phrase(
+      id: 'iqomat_hayya_alas_solah',
+      category: PhraseCategory.iqomat,
+      arabicText: 'حَيَّ عَلَى الصَّلَاةِ',
+      transliteration: 'Hayya alas-solaah',
+      meaningUz: 'Namozga shoshiling',
+      referenceAudioFile: 'iqomat_hayya_alas_solah.wav',
+      repeatCount: 1,
+      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
+      maqam: Maqam.unknown,
+    ),
+    Phrase(
+      id: 'iqomat_hayya_alal_falah',
+      category: PhraseCategory.iqomat,
+      arabicText: 'حَيَّ عَلَى الْفَلَاحِ',
+      transliteration: 'Hayya alal-falaah',
+      meaningUz: 'Najotga shoshiling',
+      referenceAudioFile: 'iqomat_hayya_alal_falah.wav',
+      repeatCount: 1,
+      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
+      maqam: Maqam.unknown,
+    ),
     Phrase(
       id: 'iqomat_qad_qomatis_solah',
       category: PhraseCategory.iqomat,
@@ -111,6 +177,28 @@ class PhraseCatalog {
       meaningUz: 'Namoz boshlandi',
       referenceAudioFile: 'iqomat_qad_qomatis_solah.wav',
       repeatCount: 2,
+      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
+      maqam: Maqam.unknown,
+    ),
+    Phrase(
+      id: 'iqomat_allohu_akbar_closing',
+      category: PhraseCategory.iqomat,
+      arabicText: 'اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ',
+      transliteration: 'Allohu akbar, Allohu akbar',
+      meaningUz: 'Alloh Buyukdir, Alloh Buyukdir',
+      referenceAudioFile: 'iqomat_allohu_akbar_closing.wav',
+      repeatCount: 2,
+      // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
+      maqam: Maqam.unknown,
+    ),
+    Phrase(
+      id: 'iqomat_laa_ilaaha_illalloh',
+      category: PhraseCategory.iqomat,
+      arabicText: 'لَا إِلَٰهَ إِلَّا اللَّهُ',
+      transliteration: 'Laa ilaaha illalloh',
+      meaningUz: "Allohdan o'zga iloh yo'q",
+      referenceAudioFile: 'iqomat_laa_ilaaha_illalloh.wav',
+      repeatCount: 1,
       // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
       maqam: Maqam.unknown,
     ),

@@ -201,6 +201,34 @@ void main() {
       );
       expect(sequence[6].id, 'azon_allohu_akbar_closing');
     });
+
+    test('v1.8: Iqomat 8 ta jumladan iborat, to\'g\'ri tartibda', () {
+      final iqomat = PhraseCatalog.iqomat;
+      expect(iqomat.length, 8);
+
+      final ids = iqomat.map((p) => p.id).toList();
+      expect(ids, [
+        'iqomat_allohu_akbar_opening',
+        'iqomat_ashhadu_laa_ilaaha',
+        'iqomat_ashhadu_anna_muhammadan',
+        'iqomat_hayya_alas_solah',
+        'iqomat_hayya_alal_falah',
+        'iqomat_qad_qomatis_solah',
+        'iqomat_allohu_akbar_closing',
+        'iqomat_laa_ilaaha_illalloh',
+      ]);
+
+      // Ochish/yopish takbiri va "Qad qoomatis-solaah" 2 martadan,
+      // qolganlari 1 martadan (Azondan farqli).
+      expect(iqomat[0].repeatCount, 2); // opening takbir
+      expect(iqomat[1].repeatCount, 1);
+      expect(iqomat[2].repeatCount, 1);
+      expect(iqomat[3].repeatCount, 1);
+      expect(iqomat[4].repeatCount, 1);
+      expect(iqomat[5].repeatCount, 2); // Qad qoomatis-solaah
+      expect(iqomat[6].repeatCount, 2); // closing takbir
+      expect(iqomat[7].repeatCount, 1);
+    });
   });
 
   group('Qo\'shimcha: bo\'sh/mavjud bo\'lmagan holatlar', () {

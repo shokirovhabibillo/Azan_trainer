@@ -32,6 +32,13 @@ void main() {
 
   final phrase = PhraseCatalog.byId('azon_allohu_akbar');
 
+  // v1.9: Azonning barcha 7 jumlasi endi HAQIQIY reference audioga ega
+  // (Bayati maqomida). Shu sababli "reference mavjud emas" holatini
+  // sinash uchun endi shu jumla ishlatilmaydi — uning o'rniga hali
+  // reference audiosi yo'q bo'lgan Iqomat jumlasi ishlatiladi.
+  final phraseWithoutReference =
+      PhraseCatalog.byId('iqomat_ashhadu_laa_ilaaha');
+
   test('juda qisqa recording (< 0.3s) → "Ovoz juda qisqa"', () async {
     final wav = buildTestWav(
       sampleRate: 16000,
@@ -47,8 +54,10 @@ void main() {
 
     expect(result.pitch.status, MetricStatus.needsWork);
     expect(result.pitch.note, contains('Ovoz juda qisqa'));
-    // Reference fayl mavjud emas (assets ichida haqiqiy WAV yo'q) —
-    // shuning uchun taqqoslash bajarilmagan bo'lishi kerak.
+    // Juda qisqa recordingda reference tekshiruvi umuman
+    // bajarilmaydi (PitchAnalyzer._shortRecordingResult har doim
+    // notAvailable qaytaradi) — reference fayl mavjud yoki yo'qligidan
+    // qat'i nazar.
     expect(
       result.referenceComparison.status,
       ReferenceComparisonStatus.notAvailable,
@@ -106,7 +115,8 @@ void main() {
 
     final result = await PitchAnalyzer().analyze(
       recordingPath: path,
-      referencePhrase: phrase, // azon_allohu_akbar.wav — assets ichida yo'q
+      // iqomat_ashhadu_laa_ilaaha.wav — assets ichida hali yo'q.
+      referencePhrase: phraseWithoutReference,
     );
 
     expect(

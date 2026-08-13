@@ -1,4 +1,33 @@
-# Azon Trainer — v1.7 (Audio + Analysis Persistence)
+# Azon Trainer — v1.9 (Real Bayati Reference Audio)
+
+## v1.9 yangiliklari (qisqacha)
+
+**Azonning barcha 7 jumlasi uchun haqiqiy reference audio qo'shildi**
+(Bayati maqomida, foydalanuvchi tomonidan taqdim etilgan, WAV/PCM16/
+mono formatda tekshirilgan). Shu bilan:
+- `lib/data/phrase_catalog.dart`da Azon jumlalarining `maqam` maydoni
+  `Maqam.unknown`dan `Maqam.bayati`ga o'zgardi (bu — foydalanuvchining
+  aniq tasdig'i asosida, taxmin emas).
+- "Reference audioni tinglash" (Play/Pause/Stop) endi Azon uchun
+  ishlaydi.
+- Result ekranida ikkala pitch contour (foydalanuvchiniki va
+  Bayati na'munasi) bitta grafikda, semiton farqi va o'xshashlik
+  foizi bilan ko'rinadi.
+- Duration solishtirish ham endi Azon uchun ishlaydi (eslatma:
+  na'muna fayllar cho'zilgan/bezakli uslubda o'qilgan, 18-40 soniya —
+  oddiy tezlikdagi o'qish bilan solishtirilganda "qisqaroq" natijasi
+  chiqishi **kutilgan holat**, xato emas).
+- `test/pitch_analyzer_test.dart`dagi "reference mavjud emas" testi
+  endi Iqomat jumlasidan foydalanadi (Azon endi haqiqiy audioga ega
+  bo'lgani uchun).
+
+Bomdod qo'shimchasi va Iqomatning barcha 8 jumlasi uchun reference
+audio hali yo'q — ular hamon `Maqam.unknown` va "Reference audio
+hali qo'shilmagan" holatida.
+
+---
+
+
 
 Azon, Bomdod azoni va Iqomat talaffuzini mashq qilish uchun Flutter (Android) ilovasi.
 

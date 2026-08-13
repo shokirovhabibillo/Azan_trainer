@@ -274,9 +274,27 @@ void main() {
     });
   });
 
-  group('Maqom metadata — taxmin qilinmaydi', () {
-    test('barcha katalog yozuvlari uchun maqam hozircha unknown', () {
-      for (final p in PhraseCatalog.all) {
+  group('Maqom metadata', () {
+    test(
+        'v1.9: Azon jumlalari uchun maqam Bayati (haqiqiy reference '
+        'audio qo\'shilgach tasdiqlangan)', () {
+      for (final p in PhraseCatalog.azon) {
+        expect(
+          p.maqam.label,
+          'Bayati',
+          reason: '${p.id} uchun maqom Bayati bo\'lishi kerak edi',
+        );
+      }
+    });
+
+    test(
+        'Reference audio hali qo\'shilmagan jumlalar (Bomdod qo\'shimchasi, '
+        'Iqomat) uchun maqam hamon unknown — taxmin qilinmagan', () {
+      final noAudioYet = [
+        PhraseCatalog.bomdodExtra,
+        ...PhraseCatalog.iqomat,
+      ];
+      for (final p in noAudioYet) {
         expect(
           p.maqam.label,
           'unknown',
