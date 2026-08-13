@@ -109,10 +109,13 @@ class PhraseCatalog {
     maqam: Maqam.unknown,
   );
 
-  /// v1.8: To'liq Hanafiy iqomat tuzilishi (8 jumla). Ko'pchilik
-  /// jumlalar 1 marta aytiladi (Azondagi 2 martadan farqli) — faqat
-  /// ochish/yopish takbiri va "Qad qoomatis-solaah"ning o'zi 2
-  /// martadan.
+  /// v1.11: To'liq Hanafiy iqomat tuzilishi (8 jumla) — mahalliy
+  /// amaliyot bo'yicha foydalanuvchi tomonidan tasdiqlangan
+  /// (v1.8'dagi qisqartirilgan versiya NOTO'G'RI edi, tuzatildi).
+  /// Iqomat Azon bilan BIR XIL sonlarda aytiladi (4, 2, 2, 2, 2), faqat
+  /// "Hayya alal-falah"dan keyin "Qod qoomatis-solaah" 2 marta
+  /// qo'shiladi, so'ng yopish takbiri (2) va yakunida "Laa ilaaha
+  /// illalloh" (1 marta).
   static const List<Phrase> iqomat = [
     Phrase(
       id: 'iqomat_allohu_akbar_opening',
@@ -121,7 +124,7 @@ class PhraseCatalog {
       transliteration: 'Allohu akbar, Allohu akbar',
       meaningUz: 'Alloh Buyukdir, Alloh Buyukdir',
       referenceAudioFile: 'iqomat_allohu_akbar_opening.wav',
-      repeatCount: 2,
+      repeatCount: 4,
       // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
       maqam: Maqam.unknown,
     ),
@@ -132,7 +135,7 @@ class PhraseCatalog {
       transliteration: 'Ashhadu an laa ilaaha illalloh',
       meaningUz: "Guvohlik beramanki, Allohdan o'zga iloh yo'q",
       referenceAudioFile: 'iqomat_ashhadu_laa_ilaaha.wav',
-      repeatCount: 1,
+      repeatCount: 2,
       // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
       maqam: Maqam.unknown,
     ),
@@ -143,7 +146,7 @@ class PhraseCatalog {
       transliteration: 'Ashhadu anna Muhammadar rosulullohi',
       meaningUz: "Guvohlik beramanki, Muhammad Allohning rasulidir",
       referenceAudioFile: 'iqomat_ashhadu_anna_muhammadan.wav',
-      repeatCount: 1,
+      repeatCount: 2,
       // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
       maqam: Maqam.unknown,
     ),
@@ -154,7 +157,7 @@ class PhraseCatalog {
       transliteration: 'Hayya alas-solaah',
       meaningUz: 'Namozga shoshiling',
       referenceAudioFile: 'iqomat_hayya_alas_solah.wav',
-      repeatCount: 1,
+      repeatCount: 2,
       // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
       maqam: Maqam.unknown,
     ),
@@ -165,7 +168,7 @@ class PhraseCatalog {
       transliteration: 'Hayya alal-falaah',
       meaningUz: 'Najotga shoshiling',
       referenceAudioFile: 'iqomat_hayya_alal_falah.wav',
-      repeatCount: 1,
+      repeatCount: 2,
       // Maqom hozircha tasdiqlanmagan — taxmin qilinmaydi.
       maqam: Maqam.unknown,
     ),
@@ -173,7 +176,7 @@ class PhraseCatalog {
       id: 'iqomat_qad_qomatis_solah',
       category: PhraseCategory.iqomat,
       arabicText: 'قَدْ قَامَتِ الصَّلَاةُ',
-      transliteration: 'Qad qoomatis-solaah',
+      transliteration: 'Qod qoomatis-solaah',
       meaningUz: 'Namoz boshlandi',
       referenceAudioFile: 'iqomat_qad_qomatis_solah.wav',
       repeatCount: 2,

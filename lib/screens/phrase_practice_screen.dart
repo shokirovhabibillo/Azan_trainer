@@ -4,8 +4,10 @@ import 'package:audioplayers/audioplayers.dart' show PlayerState;
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
+import '../data/maqam_reference_catalog.dart';
 import '../models/analysis_result.dart';
 import '../models/duration_comparison_result.dart';
+import '../models/maqam.dart';
 import '../models/phrase.dart';
 import '../models/phrase_practice_state.dart';
 import '../models/practice_session.dart';
@@ -74,9 +76,35 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
   /// v1.3: Play/Pause/Stop tugmalarini to'g'ri holatda ko'rsatish uchun.
   PlayerState _referencePlayerState = PlayerState.stopped;
 
+  /// v1.10: agar bu jumla uchun bir nechta maqom variantida reference
+  /// audio mavjud bo'lsa (masalan Bayati/Lami/Kurd), foydalanuvchi
+  /// tanlagan variant shu yerda saqlanadi. Boshlang'ich qiymat —
+  /// jumlaning standart (`widget.phrase.maqam`) varianti.
+  late Maqam _selectedMaqam;
+
+  /// v1.10: joriy tanlangan maqom variantiga mos, HAQIQIY ishlatiladigan
+  /// `Phrase` obyekti — faqat `referenceAudioFile`/`maqam` maydonlari
+  /// almashtirilgan, boshqa hamma narsa (matn, takrorlanish soni)
+  /// o'zgarmagan. `PitchAnalyzer`/`DurationAnalyzer` (himoyalangan
+  /// fayllar) buni oddiy `Phrase` sifatida qabul qiladi — ular ko'p
+  /// maqom haqida umuman "bilishmaydi".
+  Phrase get _effectivePhrase {
+    final variants = MaqamReferenceCatalog.variantsFor(widget.phrase.id);
+    if (variants.isEmpty) return widget.phrase;
+    final selected = variants.firstWhere(
+      (v) => v.maqam == _selectedMaqam,
+      orElse: () => variants.first,
+    );
+    return widget.phrase.copyWithReference(
+      referenceAudioFile: selected.audioFile,
+      maqam: selected.maqam,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
+    _selectedMaqam = widget.phrase.maqam;
     _restoreInitialState();
     _checkReferenceAvailability();
     _player.onStateChanged.listen((state) {
@@ -113,9 +141,33 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
 
   Future<void> _checkReferenceAvailability() async {
     final exists =
-        await _referenceChecker.exists(widget.phrase.referenceAudioFile);
+        await _referenceChecker.exists(_effectivePhrase.referenceAudioFile);
     if (!mounted) return;
     setState(() => _referenceAvailable = exists);
+  }
+
+  /// v1.10: foydalanuvchi boshqa maqom variantini tanlaganda
+  /// chaqiriladi. Reference mavjudligini qayta tekshiradi va — MUHIM —
+  /// eski maqomga tegishli bo'lgan keshlangan tahlil natijasini bekor
+  /// qiladi (aks holda foydalanuvchi Bayati bilan solishtirilgan
+  /// natijani Kurd tanlagandan keyin ham ko'rib qolishi mumkin edi).
+  void _onMaqamSelected(Maqam maqam) {
+    if (maqam == _selectedMaqam) return;
+    setState(() {
+      _selectedMaqam = maqam;
+      _referenceAvailable = null;
+      _cachedAnalysisResult = null;
+      _cachedDurationResult = null;
+    });
+    _checkReferenceAvailability();
+    if (_recordingPath != null) {
+      widget.onStateChanged(
+        PhrasePracticeState(
+          recordingPath: _recordingPath!,
+          recordingDuration: _recordedDuration,
+        ),
+      );
+    }
   }
 
   @override
@@ -126,7 +178,7 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
   }
 
   Future<void> _playReference() async {
-    final ok = await _player.playAsset(widget.phrase.referenceAudioFile);
+    final ok = await _player.playAsset(_effectivePhrase.referenceAudioFile);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -203,7 +255,7 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ResultScreen(
-          phrase: widget.phrase,
+          phrase: _effectivePhrase,
           recordingPath: _recordingPath!,
           // v1.7: agar bu jumla uchun tahlil oldin hisoblangan bo'lsa,
           // shu yerdan uzatamiz — ResultScreen uni qayta hisoblamaydi.
@@ -243,7 +295,7 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ResultScreen(
-          phrase: widget.phrase,
+          phrase: _effectivePhrase,
           recordingPath: _recordingPath!,
           cachedResult: _cachedAnalysisResult,
           cachedDurationResult: _cachedDurationResult,
@@ -265,8 +317,9 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          PhraseCard(phrase: widget.phrase),
+          PhraseCard(phrase: _effectivePhrase),
           const SizedBox(height: 20),
+          _buildMaqamSelector(),
           _buildReferenceControls(),
           if (_referenceAvailable == false) ...[
             const SizedBox(height: 6),
@@ -358,6 +411,38 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMaqamSelector() {
+    final variants = MaqamReferenceCatalog.variantsFor(widget.phrase.id);
+    if (variants.length <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        children: [
+          const Text(
+            'Maqom',
+            style: TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: variants.map((v) {
+              final selected = v.maqam == _selectedMaqam;
+              return ChoiceChip(
+                label: Text(v.maqam.label),
+                selected: selected,
+                selectedColor: AppTheme.primary.withOpacity(0.2),
+                onSelected: (_) => _onMaqamSelected(v.maqam),
+              );
+            }).toList(),
+          ),
         ],
       ),
     );

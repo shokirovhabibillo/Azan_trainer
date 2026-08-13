@@ -202,7 +202,9 @@ void main() {
       expect(sequence[6].id, 'azon_allohu_akbar_closing');
     });
 
-    test('v1.8: Iqomat 8 ta jumladan iborat, to\'g\'ri tartibda', () {
+    test(
+        'v1.11: Iqomat 8 ta jumladan iborat, mahalliy Hanafiy '
+        'amaliyot bo\'yicha to\'g\'ri sonlar bilan', () {
       const iqomat = PhraseCatalog.iqomat;
       expect(iqomat.length, 8);
 
@@ -218,14 +220,16 @@ void main() {
         'iqomat_laa_ilaaha_illalloh',
       ]);
 
-      // Ochish/yopish takbiri va "Qad qoomatis-solaah" 2 martadan,
-      // qolganlari 1 martadan (Azondan farqli).
-      expect(iqomat[0].repeatCount, 2); // opening takbir
-      expect(iqomat[1].repeatCount, 1);
-      expect(iqomat[2].repeatCount, 1);
-      expect(iqomat[3].repeatCount, 1);
-      expect(iqomat[4].repeatCount, 1);
-      expect(iqomat[5].repeatCount, 2); // Qad qoomatis-solaah
+      // v1.11: foydalanuvchi tomonidan tasdiqlangan mahalliy Hanafiy
+      // amaliyot — Iqomat Azon bilan BIR XIL sonlarda aytiladi
+      // ("Hayya alal-falah"dan keyin "Qod qoomatis-solaah" 2 marta
+      // qo'shilib), faqat yakunida "Laa ilaaha illalloh" 1 marta.
+      expect(iqomat[0].repeatCount, 4); // opening takbir
+      expect(iqomat[1].repeatCount, 2);
+      expect(iqomat[2].repeatCount, 2);
+      expect(iqomat[3].repeatCount, 2);
+      expect(iqomat[4].repeatCount, 2);
+      expect(iqomat[5].repeatCount, 2); // Qod qoomatis-solaah
       expect(iqomat[6].repeatCount, 2); // closing takbir
       expect(iqomat[7].repeatCount, 1);
     });

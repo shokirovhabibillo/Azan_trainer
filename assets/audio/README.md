@@ -1,9 +1,43 @@
 # Reference audio fayllari
 
-## v1.9: Azon uchun reference audio ENDI MAVJUD (Bayati maqomida)
+## v1.10: Lami, Kurd va Hijaz maqomlarida QO'SHIMCHA reference audio
 
-Quyidagi 7 ta fayl foydalanuvchi tomonidan taqdim etilgan, tekshirilgan
-(WAV, PCM16, mono, 22050 Hz) va loyihaga qo'shilgan:
+Foydalanuvchi 3 ta to'liq (uzluksiz) azon yozuvini taqdim etdi —
+"Lami", "Kurd" va "Hijaz" maqomlarida. Ularning barchasi avtomatik
+jimlik-aniqlash (silence detection) orqali segmentlarga bo'lindi va
+bir xil sxemaga (4+2+2+2+2+2 = 14 segment) moslab, 6 ta jumlaga
+guruhlandi:
+
+- ✅ azon_allohu_akbar_{lami,kurd,hijaz}.wav
+- ✅ azon_ashhadu_laa_ilaaha_{lami,kurd,hijaz}.wav
+- ✅ azon_ashhadu_anna_muhammadan_{lami,kurd,hijaz}.wav
+- ✅ azon_hayya_alas_solah_{lami,kurd,hijaz}.wav
+- ✅ azon_hayya_alal_falah_{lami,kurd,hijaz}.wav
+- ✅ azon_allohu_akbar_closing_{lami,kurd,hijaz}.wav
+
+**MUHIM — ochiq eslatma:** uchala yuklangan yozuvda ham "Laa ilaaha
+illalloh" uchun alohida, aniq segment topilmadi (14 segmentlik naqsh
+faqat 6 jumlaga yetadi, 7-jumla yo'q). Shuning uchun **hech bir
+qo'shimcha maqom variantida 7-jumla (`azon_laa_ilaaha_illalloh`)
+uchun reference audio yo'q** — bu jumlada ilova faqat standart
+(Bayati) variantni ko'rsatadi. Bu — taxmin qilib to'ldirilmagan, ochiq
+qoldirilgan holat.
+
+**Segmentatsiya usuli haqida ochiq eslatma:** bu bo'linish audio
+signalidagi JIMLIK oraliqlarining VAQT naqshiga (uchala faylda ham
+bir xil chiqqan) asoslangan — men audio tarkibini tinglab
+tasdiqlamadim (bu sandbox'da audio eshitish imkoniyati yo'q).
+Fayllarni ilovada sinab, har bir jumla to'g'ri audio bilan mos
+kelishini tekshiring — agar birortasi noto'g'ri chiqsa, xabar bering.
+
+Yangi `lib/data/maqam_reference_catalog.dart` fayli shu variantlarni
+jumla ID bo'yicha xaritalaydi (har bir jumla uchun endi 4 tadan
+variant: Bayati, Lami, Kurd, Hijaz). Foydalanuvchi ilovada mos jumla
+ekranida "Maqom" tanlovchisi orqali ular orasida almashtira oladi.
+
+## v1.9: Azon uchun reference audio (Bayati maqomida)
+
+Quyidagi 7 ta fayl — standart (asosiy) variant:
 
 - ✅ azon_allohu_akbar.wav
 - ✅ azon_ashhadu_laa_ilaaha.wav

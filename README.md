@@ -1,4 +1,79 @@
-# Azon Trainer — v1.9 (Real Bayati Reference Audio)
+# Azon Trainer — v1.11 (Iqomat Repeat Count Fix)
+
+## v1.11 yangiliklari (qisqacha)
+
+**Muhim diniy-mazmuniy tuzatish:** foydalanuvchi (mahalliy Hanafiy
+amaliyot asosida) v1.8'da kiritilgan Iqomat aytilish sonlari
+**noto'g'ri** ekanligini aniqladi. To'g'irlandi:
+
+| Jumla | v1.8 (noto'g'ri) | v1.11 (to'g'ri) |
+|---|---|---|
+| Allohu akbar (ochish) | 2 | **4** |
+| Ashhadu an laa ilaaha illalloh | 1 | **2** |
+| Ashhadu anna Muhammadar rosulullohi | 1 | **2** |
+| Hayya alas-solaah | 1 | **2** |
+| Hayya alal-falaah | 1 | **2** |
+| Qod qoomatis-solaah | 2 | 2 (o'zgarmadi) |
+| Allohu akbar (yopish) | 2 | 2 (o'zgarmadi) |
+| Laa ilaaha illalloh | 1 | 1 (o'zgarmadi) |
+
+Ya'ni Iqomat endi Azon bilan **bir xil sonlarda** aytiladi (4,2,2,2,2),
+faqat "Hayya alal-falah"dan keyin "Qod qoomatis-solaah" (2x) qo'shiladi
+— bu Hanafiy mazhabidagi standart amaliyot.
+
+Foydalanuvchi shu bilan birga bitta video/audio fayl ("Iqamat.mp3",
+aslida h264 video + AAC audio, 50s) yubordi, lekin undagi takbir
+sonlari BOSHQA (kamroq) ekanligini o'zi aniq ta'kidladi — shuning
+uchun bu fayl **reference audio sifatida ISHLATILMADI**, faqat
+matn/son tuzatishi uchun asos bo'ldi.
+
+---
+
+
+
+## v1.10 yangiliklari (qisqacha)
+
+**1) Iqomat transkripsiyasi tuzatildi:** "Qad qoomatis-solaah" →
+**"Qod qoomatis-solaah"** (foydalanuvchi so'rovi bo'yicha).
+
+**2) Uch xil yangi pitch grafik turi qo'shildi**, Result ekranida
+tanlov chipi orqali almashtiriladi:
+- **Chiziq** (avvalgi standart) — ikkita alohida rangli chiziq
+- **Piano-roll** — vokal-trener uslubida, gorizontal "yo'llar" ustidan
+  harakatlanuvchi chiziqlar
+- **Farq (deviation)** — faqat semitone farqni, nol chiziq atrofida
+  ko'rsatadi (reference talab qiladi)
+- **Qoplama (overlay)** — ikkala konturni o'z o'rtachasiga nisbatan
+  markazlashtirib, faqat SHAKLNI solishtiradi — ovoz registri (baland/
+  past ovoz) farqidan mustaqil (reference talab qiladi)
+
+Bularning barchasi **faqat taqdimot qatlamida** — YIN/pitch-tahlil
+algoritmiga tegilmagan, yangi widget fayllari sifatida qo'shilgan.
+
+**3) Uchta yangi maqom — Lami, Kurd va Hijaz — Azonning 6 jumlasiga
+qo'shildi.** Foydalanuvchi taqdim etgan 3 ta to'liq azon yozuvi
+(MP3→WAV) avtomatik jimlik-aniqlash orqali segmentlarga bo'lindi va
+bir xil sxemaga moslab guruhlandi. Endi mos jumla ekranida **"Maqom"
+tanlovchisi** orqali Bayati/Lami/Kurd/Hijaz orasida (4 variant)
+almashtirish mumkin — tanlangan maqomning o'z reference audiosi bilan
+solishtiriladi.
+
+**MUHIM ochiq eslatma:** hech bir qo'shimcha maqom variantida
+**7-jumla ("Laa ilaaha illalloh") uchun reference audio yo'q** —
+uchala yuklangan yozuvda ham bu jumlaga mos alohida segment
+aniqlanmadi. Bundan tashqari, segmentatsiya audio TARKIBINI tinglab
+emas, balki jimlik VAQT naqshiga asoslangan — sinab, tasdiqlashingiz
+kerak.
+
+**Arxitektura:** `pitch_analyzer.dart` (himoyalangan) hech qanday
+o'zgarishsiz qoldi — ko'p-maqom tanlovi `Phrase.copyWithReference()`
+orqali amalga oshiriladi: tanlangan maqomga mos `referenceAudioFile`/
+`maqam` bilan YANGI `Phrase` nusxasi yaratiladi va shu oddiy `Phrase`
+sifatida analyzer'larga uzatiladi — ular ko'p-maqom haqida "bilishmaydi".
+
+---
+
+
 
 ## v1.9 yangiliklari (qisqacha)
 

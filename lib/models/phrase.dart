@@ -38,4 +38,26 @@ class Phrase {
     this.repeatCount = 1,
     this.maqam = Maqam.unknown,
   });
+
+  /// v1.10: foydalanuvchi bir nechta maqom variantidan birini
+  /// tanlaganda ishlatiladi. `PitchAnalyzer`/`DurationAnalyzer`
+  /// (himoyalangan fayllar) o'zgarishsiz qoladi — ular oddiy `Phrase`
+  /// obyektini qabul qiladi; biz shunchaki BOSHQA `referenceAudioFile`/
+  /// `maqam` qiymatlariga ega yangi `Phrase` nusxasini hosil qilib,
+  /// o'shani beramiz.
+  Phrase copyWithReference({
+    required String referenceAudioFile,
+    required Maqam maqam,
+  }) {
+    return Phrase(
+      id: id,
+      category: category,
+      arabicText: arabicText,
+      transliteration: transliteration,
+      meaningUz: meaningUz,
+      referenceAudioFile: referenceAudioFile,
+      repeatCount: repeatCount,
+      maqam: maqam,
+    );
+  }
 }

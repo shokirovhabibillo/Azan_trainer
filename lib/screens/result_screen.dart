@@ -9,6 +9,9 @@ import '../services/analysis/duration_analyzer.dart';
 import '../services/analysis/pitch_analyzer.dart';
 import '../widgets/dual_pitch_contour_chart.dart';
 import '../widgets/metric_tile.dart';
+import '../widgets/pitch_deviation_chart.dart';
+import '../widgets/pitch_overlay_chart.dart';
+import '../widgets/pitch_piano_roll_chart.dart';
 
 class ResultScreen extends StatefulWidget {
   final Phrase phrase;
@@ -44,6 +47,8 @@ class ResultScreen extends StatefulWidget {
   State<ResultScreen> createState() => _ResultScreenState();
 }
 
+enum _ChartType { line, deviation, pianoRoll, overlay }
+
 class _ResultScreenState extends State<ResultScreen> {
   // v1.1: haqiqiy F0/pitch tahlili. v1.2: reference mavjud bo'lganda
   // shu tahlilchi orqali reference bilan taqqoslash ham amalga oshadi.
@@ -57,6 +62,11 @@ class _ResultScreenState extends State<ResultScreen> {
   AnalysisResult? _result;
   DurationComparisonResult? _durationResult;
   bool _loading = true;
+
+  /// v1.10: foydalanuvchi tanlagan grafik turi (talab: "foydalanuvchi
+  /// o'zi qulayini tanlab foydalansin"). Faqat taqdimot holati —
+  /// tahlil natijasiga ta'sir qilmaydi.
+  _ChartType _chartType = _ChartType.line;
 
   @override
   void initState() {
@@ -144,19 +154,9 @@ class _ResultScreenState extends State<ResultScreen> {
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 10),
-                  DualPitchContourChart(
-                    userFrames: result.pitchContour,
-                    userDurationSeconds: result.recordingDurationSeconds ?? 0,
-                    referenceFrames:
-                        result.referenceComparison.isAvailable
-                            ? result.referenceComparison.referenceContour
-                            : null,
-                    referenceDurationSeconds:
-                        result.referenceComparison.isAvailable
-                            ? result.referenceComparison
-                                .referenceDurationSeconds
-                            : null,
-                  ),
+                  _buildChartTypeSelector(),
+                  const SizedBox(height: 10),
+                  _buildSelectedChart(result),
                 ],
               ),
             ),
@@ -205,6 +205,88 @@ class _ResultScreenState extends State<ResultScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildChartTypeSelector() {
+    final hasReference = _result?.referenceComparison.isAvailable ?? false;
+
+    Widget chip(_ChartType type, String label) {
+      // "Farq" va "Qoplama" grafiklari reference talab qiladi.
+      final requiresReference =
+          type == _ChartType.deviation || type == _ChartType.overlay;
+      final enabled = !requiresReference || hasReference;
+      return ChoiceChip(
+        label: Text(label),
+        selected: _chartType == type,
+        onSelected: enabled
+            ? (_) => setState(() => _chartType = type)
+            : null,
+      );
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        chip(_ChartType.line, 'Chiziq'),
+        chip(_ChartType.pianoRoll, 'Piano-roll'),
+        chip(_ChartType.deviation, 'Farq'),
+        chip(_ChartType.overlay, 'Qoplama'),
+      ],
+    );
+  }
+
+  Widget _buildSelectedChart(AnalysisResult result) {
+    final hasReference = result.referenceComparison.isAvailable;
+    final userFrames = result.pitchContour;
+    final userDuration = result.recordingDurationSeconds ?? 0;
+    final refFrames =
+        hasReference ? result.referenceComparison.referenceContour : null;
+    final refDuration =
+        hasReference ? result.referenceComparison.referenceDurationSeconds : null;
+
+    switch (_chartType) {
+      case _ChartType.line:
+        return DualPitchContourChart(
+          userFrames: userFrames,
+          userDurationSeconds: userDuration,
+          referenceFrames: refFrames,
+          referenceDurationSeconds: refDuration,
+        );
+      case _ChartType.pianoRoll:
+        return PitchPianoRollChart(
+          userFrames: userFrames,
+          userDurationSeconds: userDuration,
+          referenceFrames: refFrames,
+          referenceDurationSeconds: refDuration,
+        );
+      case _ChartType.deviation:
+        if (!hasReference || refFrames == null || refDuration == null) {
+          return const Text(
+            'Farq grafigi uchun reference audio kerak.',
+            style: TextStyle(color: Colors.black45, fontSize: 12),
+          );
+        }
+        return PitchDeviationChart(
+          userFrames: userFrames,
+          userDurationSeconds: userDuration,
+          referenceFrames: refFrames,
+          referenceDurationSeconds: refDuration,
+        );
+      case _ChartType.overlay:
+        if (!hasReference || refFrames == null || refDuration == null) {
+          return const Text(
+            'Qoplama grafigi uchun reference audio kerak.',
+            style: TextStyle(color: Colors.black45, fontSize: 12),
+          );
+        }
+        return PitchOverlayChart(
+          userFrames: userFrames,
+          userDurationSeconds: userDuration,
+          referenceFrames: refFrames,
+          referenceDurationSeconds: refDuration,
+        );
+    }
   }
 }
 

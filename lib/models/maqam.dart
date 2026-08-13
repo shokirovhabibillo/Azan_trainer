@@ -16,6 +16,10 @@ enum Maqam {
   saba,
   sikah,
 
+  /// v1.10: foydalanuvchi tomonidan taqdim etilgan reference audio
+  /// asosida qo'shildi ("Lami" nomi bilan aniq ko'rsatilgan).
+  lami,
+
   /// Maqom hali tasdiqlanmagan/aniqlanmagan.
   unknown,
 }
@@ -41,6 +45,8 @@ extension MaqamLabel on Maqam {
         return 'Saba';
       case Maqam.sikah:
         return 'Sikah';
+      case Maqam.lami:
+        return 'Lami';
       case Maqam.unknown:
         return 'unknown';
     }
