@@ -10,7 +10,7 @@ const List<OnboardingPageContent> onboardingPages = [
     totalPages: 4,
     title: 'Azon Trainer\'ga xush kelibsiz',
     body: '''
-Ushbu ilova azonni to'g'ri talaffuz qilish, ovoz ohangi va davomiyligini mashq qilish hamda o'z ijroningizni namuna ovoz bilan solishtirish uchun mo'ljallangan.
+Ushbu ilova azonni to'g'ri talaffuz qilish, ovoz ohangi va davomiyligini mashq qilish hamda o'z ijroyingizni namuna ovoz bilan solishtirish uchun mo'ljallangan.
 
 Ilovadan foydalanishdan oldin quyidagi muhim ma'lumotlarni to'liq o'qib chiqing.
 
