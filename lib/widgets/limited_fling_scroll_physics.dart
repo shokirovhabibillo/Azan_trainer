@@ -1,4 +1,3 @@
-import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 
 /// v1.13: onboarding matnini o'qimasdan "bir zumda" pastga surib
