@@ -1,4 +1,61 @@
-# Azon Trainer — v1.11 (Iqomat Repeat Count Fix)
+# Azon Trainer — v1.12 (Iqomat Pipeline Verification)
+
+## v1.12 — "V2 FIX" bo'yicha topilmalar va holat
+
+**1) Iqomat MP3 segmentatsiyasi — BLOKLANGAN, foydalanuvchi javobini kutmoqda.**
+
+`Iqamat.mp3` (video fayl, h264+AAC, 50.3s) turli jimlik-aniqlash
+chegaralarida (-20dB dan -40dB gacha, 0.05s dan 0.5s gacha davomiylik)
+sinovdan o'tkazildi — **audio boshidan oxirigacha (~43.5s) hech qanday
+ichki tanaffuс topilmadi** (faqat oxirida 0.05-0.1s mikro-uzilishlar,
+ular ham 7 jumla chegarasiga to'g'ri kelmaydi). Bu — Iqomat *tez*
+o'qilgani sababli (Azondan farqli, u cho'ziladi). Diniy matn aniqligi
+muhim bo'lgani sababli, bu fayl **taxminiy vaqt bo'yicha bo'linmadi** —
+foydalanuvchidan aniq vaqt chegaralari yoki tanaffusli qayta yozuv
+so'ralmoqda.
+
+**2) Pitch/Pitch Contour/Duration Iqomat uchun ko'rinmasligi — KOD
+DARAJASIDA XATO TOPILMADI.**
+
+Tekshiruv: `grep -rn "PhraseCategory\." lib/screens/ lib/services/analysis/`
+— **hech qanday natija chiqmadi**. Bu tasdiqlaydi: pitch/duration
+tahlil pipeline'i va Result ekrani **kategoriyaga (Azon/Bomdod/Iqomat)
+umuman bog'liq emas** — ular faqat `Phrase` obyektining
+`referenceAudioFile`/matn maydonlaridan foydalanadi. `ResultScreen`da
+Pitch/Duration `MetricTile`lari va Pitch Contour bo'limi **shartsiz**
+(faqat `result.pitchContour.isNotEmpty`ga qarab) chiziladi — reference
+mavjudligidan yoki kategoriyadan qat'i nazar.
+
+Bu — `test/iqomat_pipeline_test.dart` orqali **kod darajasida
+isbotlandi** (haqiqiy audio fayl kerak emas, mavjud fake-checker
+pattern'i orqali): Iqomat jumlasi uchun pitch, pitch contour, duration,
+reference comparison — barchasi Azon bilan **bir xil natija beradi**.
+
+**Ehtimoliy sabab:** foydalanuvchi eski (v1.7'dan oldingi) APK
+build'ini sinagan bo'lishi mumkin, yoki "Pitch yo'q" degani aslida
+"Reference audio yo'q" bilan aralashtirilgan bo'lishi mumkin (ikkalasi
+alohida-alohida ko'rsatiladi). Eng so'nggi ZIP'ni build qilib qayta
+sinab ko'rishni so'rayman — agar muammo davom etsa, Result ekranining
+skrinshotini yuboring, aniq diagnostika qilaman.
+
+**3) "type = iqomat" identifikatori — allaqachon mavjud, yangi tizim
+kerak emas.** `Phrase.category` maydoni (`PhraseCategory.iqomat`)
+aynan shu vazifani bajaradi — reference audio qidiruv zanjiri
+(`referenceAudioFile` → `ReferenceAudioChecker` → `ReferenceAudioLoader`
+→ `PitchAnalyzer`/`DurationAnalyzer`) kategoriyani UMUMAN bilmaydi,
+faqat fayl nomi bilan ishlaydi — bu allaqachon Azon uchun ishlagan
+bir xil, umumiy mexanizm. Barcha 8 ta Iqomat jumlasining
+`referenceAudioFile` qiymatlari (masalan
+`iqomat_allohu_akbar_opening.wav`) allaqachon to'g'ri belgilangan —
+faqat haqiqiy fayllar `assets/audio/`da yo'q.
+
+**O'zgargan kod:** **YO'Q.** Faqat bitta yangi test fayli
+(`test/iqomat_pipeline_test.dart`) qo'shildi — chunki tekshiruv hech
+qanday tuzatish talab qiladigan xato topmadi.
+
+---
+
+
 
 ## v1.11 yangiliklari (qisqacha)
 
