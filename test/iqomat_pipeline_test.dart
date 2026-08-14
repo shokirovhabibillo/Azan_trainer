@@ -162,8 +162,8 @@ void main() {
       final pitchAnalyzer = PitchAnalyzer(
         referenceChecker: const _FakeCheckerUnavailable(),
       );
-      final durationAnalyzer = DurationAnalyzer(
-        referenceChecker: const _FakeCheckerUnavailable(),
+      const durationAnalyzer = DurationAnalyzer(
+        referenceChecker: _FakeCheckerUnavailable(),
       );
 
       // Hech qanday exception otilmasligi kerak.

@@ -1,4 +1,39 @@
-# Azon Trainer — v1.12 (Iqomat Pipeline Verification)
+# Azon Trainer — v1.13 (Mandatory Onboarding)
+
+## v1.13 — Majburiy "Muhim ma'lumotlar" onboarding
+
+Ilova birinchi marta ochilganda, foydalanuvchi 4 sahifali (tajvid,
+Hanafiy mazhabidagi azon tartibi — 23.04.2025 fatvo asosida, ayollar
+masalasi) majburiy ma'lumot bilan tanishtiriladi, so'ng checkbox +
+tasdiqlash orqali ilovaga kiradi. Bu holat `SharedPreferences`da
+(`onboarding_completed`) doimiy saqlanadi — keyingi ochilishlarda
+qayta chiqmaydi. Home ekranidagi ℹ️ tugmasi orqali istalgan payt
+qayta ochish mumkin (cheklovsiz "ko'rib chiqish rejimi").
+
+**O'qishni "sakratib o'tish"ning oldini olish:** har bir sahifa uchun
+matn uzunligiga qarab hisoblangan **minimal o'qish vaqti** (220
+so'z/daqiqa, kamida 6s) va **pastgacha yetib borish** sharti
+bajarilmaguncha "Davom etish" tugmasi o'chirilgan turadi. Qo'shimcha
+himoya sifatida, tez "fling" (barmoqni otib yuborish) tezligi
+cheklangan — lekin oddiy tortib scroll qilish va yuqoriga qaytib
+qayta o'qish erkin.
+
+**Yangi dependency:** yo'q. Manba havolasi (fatvo linki) `url_launcher`
+o'rniga **tanlab-nusxalanadigan matn** sifatida ko'rsatildi — chunki
+loyihada oldin yangi paket qo'shish (`record`) Gradle bilan ko'p
+muammo keltirib chiqargan edi, va bu bitta havola uchun shu xavfni
+qayta tug'dirishga arzimaydi deb topildi.
+
+**Mavjud funksiyalarga tegilmadi:** Azon, Bomdod, Iqomat, recording-
+state, reference audio, pitch/duration tahlili, maqomlar — barchasi
+`diff` bilan tasdiqlangan holda **o'zgarishsiz** qoldi. Faqat
+`main.dart` (ilova kirish nuqtasi onboarding tekshiruvidan o'tadi) va
+`home_screen.dart`ga (ℹ️ tugmasi) minimal, izolyatsiya qilingan
+integratsiya qo'shildi.
+
+---
+
+
 
 ## v1.12 — "V2 FIX" bo'yicha topilmalar va holat
 

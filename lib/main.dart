@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/theme.dart';
-import 'screens/home_screen.dart';
+import 'screens/app_startup_gate.dart';
 
 void main() {
   runApp(const AzonTrainerApp());
@@ -16,7 +16,7 @@ class AzonTrainerApp extends StatelessWidget {
       title: 'Azon Trainer',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const HomeScreen(),
+      home: const AppStartupGate(),
     );
   }
 }

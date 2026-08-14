@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import '../data/phrase_catalog.dart';
+import 'onboarding_screen.dart';
 import 'practice_screen.dart';
 
 enum HomeMode { azon, bomdod, iqomat }
@@ -12,7 +13,20 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Azon Trainer')),
+      appBar: AppBar(
+        title: const Text('Azon Trainer'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'Muhim ma\'lumotlar',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const OnboardingScreen(isReviewMode: true),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
