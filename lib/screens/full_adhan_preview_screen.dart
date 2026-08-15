@@ -6,6 +6,7 @@ import '../data/full_maqam_adhan_catalog.dart';
 import '../data/maqam_reference_catalog.dart';
 import '../models/maqam.dart';
 import '../models/phrase.dart';
+import '../models/prayer_time.dart';
 import '../services/audio/audio_player_service.dart';
 import '../services/audio/sequential_playback_sequence.dart';
 import 'practice_screen.dart';
@@ -33,6 +34,7 @@ class FullAdhanPreviewScreen extends StatefulWidget {
   final Maqam maqam;
   final List<Phrase> phrases;
   final bool isIqomat;
+  final PrayerTime? prayerTime;
 
   const FullAdhanPreviewScreen({
     super.key,
@@ -40,6 +42,7 @@ class FullAdhanPreviewScreen extends StatefulWidget {
     required this.maqam,
     required this.phrases,
     this.isIqomat = false,
+    this.prayerTime,
   });
 
   @override
@@ -204,6 +207,7 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
                           title: widget.sessionTitle,
                           phrases: widget.phrases,
                           sessionMaqam: widget.maqam,
+                          prayerTime: widget.prayerTime,
                         ),
                       ),
                     );

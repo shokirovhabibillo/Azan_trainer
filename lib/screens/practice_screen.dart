@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/maqam.dart';
 import '../models/phrase.dart';
 import '../models/phrase_practice_state.dart';
+import '../models/prayer_time.dart';
 import '../services/practice_session_controller.dart';
 import 'azon_results_screen.dart';
 import 'phrase_practice_screen.dart';
@@ -35,11 +36,18 @@ class PracticeScreen extends StatefulWidget {
   final List<Phrase> phrases;
   final Maqam? sessionMaqam;
 
+  /// v1.18: Azon oqimida tanlangan namoz vaqti. Hozircha faqat
+  /// SAQLANADI (kelajakda har bir namoz uchun alohida
+  /// konfiguratsiya/reference qo'shish imkoniyati uchun) — mashq
+  /// jarayonining o'ziga ta'sir qilmaydi.
+  final PrayerTime? prayerTime;
+
   const PracticeScreen({
     super.key,
     required this.title,
     required this.phrases,
     this.sessionMaqam,
+    this.prayerTime,
   });
 
   @override

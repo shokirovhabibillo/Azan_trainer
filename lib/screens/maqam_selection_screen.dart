@@ -4,6 +4,7 @@ import '../core/theme.dart';
 import '../data/phrase_catalog.dart';
 import '../models/maqam.dart';
 import '../models/phrase.dart';
+import '../models/prayer_time.dart';
 import 'full_adhan_preview_screen.dart';
 
 /// v1.18: tanlash uchun mavjud 8 ta maqom — bular
@@ -33,11 +34,18 @@ class MaqamSelectionScreen extends StatelessWidget {
   final bool isBomdod;
   final bool isIqomat;
 
+  /// v1.17: Azon oqimida `PrayerTimeSelectionScreen`dan keladi.
+  /// Hozircha faqat SAQLANADI (kelajakda har bir namoz uchun alohida
+  /// konfiguratsiya qo'shish imkoniyati uchun) — hech qanday kontent
+  /// yoki audio tanlovga ta'sir qilmaydi.
+  final PrayerTime? prayerTime;
+
   const MaqamSelectionScreen({
     super.key,
     required this.sessionTitle,
     this.isBomdod = false,
     this.isIqomat = false,
+    this.prayerTime,
   });
 
   List<Phrase> get _phrases {
@@ -69,6 +77,7 @@ class MaqamSelectionScreen extends StatelessWidget {
                     maqam: maqam,
                     phrases: _phrases,
                     isIqomat: isIqomat,
+                    prayerTime: prayerTime,
                   ),
                 ),
               ),
