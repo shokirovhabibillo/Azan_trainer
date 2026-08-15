@@ -41,7 +41,6 @@ class RealtimeAudioRecorderService {
   final _levelController = StreamController<VoiceLevelSample>.broadcast();
 
   String? _pendingPath;
-  DateTime? _startedAt;
   bool _usingFallback = false;
 
   /// Real-vaqt pitch namunalari oqimi. Fallback rejimida (streaming
@@ -78,7 +77,6 @@ class RealtimeAudioRecorderService {
           '${phraseId}_${DateTime.now().millisecondsSinceEpoch}.wav';
       _pendingPath = '${dir.path}/$fileName';
       _writer = StreamingWavWriter(sampleRate: sampleRate);
-      _startedAt = DateTime.now();
 
       final stream = await _recorder.startStream(
         const RecordConfig(
@@ -154,7 +152,6 @@ class RealtimeAudioRecorderService {
     } catch (_) {}
     _writer = null;
     _pendingPath = null;
-    _startedAt = null;
   }
 
   Future<Directory> _recordingsDirectory() async {

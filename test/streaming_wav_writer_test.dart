@@ -27,7 +27,7 @@ void main() {
     test('yozilgan WAV fayl WavDecoder orqali xatosiz o\'qiladi', () async {
       final writer = StreamingWavWriter(sampleRate: 16000, channels: 1);
 
-      final sampleCount = 8000;
+      const sampleCount = 8000;
       final bytes = ByteData(sampleCount * 2);
       for (int i = 0; i < sampleCount; i++) {
         final t = i / 16000;

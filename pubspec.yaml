@@ -1,7 +1,7 @@
 name: azon_trainer
-description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.15 - Iqomat Reference Audio Complete).
+description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.16 - Azon Etiquette).
 publish_to: "none"
-version: 0.1.15+1
+version: 0.1.16+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

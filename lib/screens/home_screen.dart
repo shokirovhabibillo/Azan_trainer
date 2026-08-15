@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import '../data/phrase_catalog.dart';
+import 'azon_etiquette_screen.dart';
 import 'onboarding_screen.dart';
 import 'practice_screen.dart';
 
 enum HomeMode { azon, bomdod, iqomat }
+
+enum _InfoMenuItem { importantInfo, etiquette }
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -16,14 +19,20 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Azon Trainer'),
         actions: [
-          IconButton(
+          PopupMenuButton<_InfoMenuItem>(
             icon: const Icon(Icons.info_outline),
-            tooltip: 'Muhim ma\'lumotlar',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const OnboardingScreen(isReviewMode: true),
+            tooltip: 'Ma\'lumot',
+            onSelected: (item) => _openInfo(context, item),
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: _InfoMenuItem.importantInfo,
+                child: Text('Muhim ma\'lumotlar'),
               ),
-            ),
+              PopupMenuItem(
+                value: _InfoMenuItem.etiquette,
+                child: Text('Azon odoblari'),
+              ),
+            ],
           ),
         ],
       ),
@@ -60,6 +69,15 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _openInfo(BuildContext context, _InfoMenuItem item) {
+    final screen = switch (item) {
+      _InfoMenuItem.importantInfo =>
+        const OnboardingScreen(isReviewMode: true),
+      _InfoMenuItem.etiquette => const AzonEtiquetteScreen(),
+    };
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 
   void _openPractice(BuildContext context, HomeMode mode) {

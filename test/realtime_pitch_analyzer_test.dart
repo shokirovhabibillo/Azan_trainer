@@ -120,7 +120,7 @@ void main() {
         'beradi (voiced bo\'lsa ham chastota tasodifiy)', () {
       final analyzer = RealtimePitchAnalyzer(sampleRate: 16000);
       final random = math.Random(42);
-      final sampleCount = 16000; // 1 soniya
+      const sampleCount = 16000; // 1 soniya
       final bytes = ByteData(sampleCount * 2);
       for (int i = 0; i < sampleCount; i++) {
         final value = (random.nextDouble() * 2 - 1) * 0.5 * 32767;

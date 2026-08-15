@@ -1,4 +1,23 @@
-# Azon Trainer — v1.15 (Iqomat Reference Audio Complete)
+# Azon Trainer — v1.16 (Azon Etiquette)
+
+## v1.16 — Azon aytish tartibi va odoblari
+
+Ikkita yangi joyda:
+1. **Home ekrani → ℹ️ menyu → "Azon odoblari"** — to'liq matn
+   (qiblaga qarash, ovoz/ohang, o'ng-chap burilish, eshituvchining
+   odobi), alohida, majburiy bo'lmagan ekranda.
+2. **Amaliy eslatma, mashq paytida** — "Hayya alas-solah" jumlasida
+   ekranda "→ O'ng tomonga burilib ayting", "Hayya alal-falah"da
+   "← Chap tomonga burilib ayting" ko'rinadi (Azon va Iqomatning
+   ikkalasida ham).
+
+**Mavjud funksiyalarga tegilmadi:** faqat `home_screen.dart` (menyu)
+va `phrase_practice_screen.dart`ga (eslatma widgeti) minimal qo'shish
+qilindi — recording, tahlil, maqom tanlash o'zgarishsiz.
+
+---
+
+
 
 ## v1.15 — Iqomat na'muna audiosi endi TO'LIQ (8/8)
 

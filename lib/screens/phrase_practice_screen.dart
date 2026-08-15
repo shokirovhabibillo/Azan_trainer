@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import '../data/maqam_reference_catalog.dart';
+import '../data/phrase_etiquette_hints.dart';
 import '../models/analysis_result.dart';
 import '../models/duration_comparison_result.dart';
 import '../models/maqam.dart';
@@ -393,6 +394,10 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
       child: Column(
         children: [
           PhraseCard(phrase: _effectivePhrase),
+          if (phraseEtiquetteHints.containsKey(widget.phrase.id)) ...[
+            const SizedBox(height: 10),
+            _buildEtiquetteHint(phraseEtiquetteHints[widget.phrase.id]!),
+          ],
           const SizedBox(height: 20),
           _buildMaqamSelector(),
           _buildReferenceControls(),
@@ -506,6 +511,32 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEtiquetteHint(PhraseEtiquetteHint hint) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.accent.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(hint.icon, size: 18, color: AppTheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            hint.text,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppTheme.primary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
