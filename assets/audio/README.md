@@ -1,5 +1,41 @@
 # Reference audio fayllari
 
+## v1.17: 8 maqom × 8 jumla TO'LIQ to'plami + To'liq azon namunalari
+
+### Jumla-darajasidagi reference audio (pitch/duration tahlili uchun)
+
+`assets/audio/maqamat/phrases/{maqom}/` — 8 ta maqom (bayati, ajam,
+kurd, hijaz, lami, nahawand, rast, saba), har birida 8 ta jumla fayli:
+
+```
+allohu_akbar.wav                    (×4)
+ashhadu_laa_ilaaha.wav              (×2)
+ashhadu_anna_muhammadan.wav         (×2)
+hayya_alas_solah.wav                (×2)
+hayya_alal_falah.wav                (×2)
+as_solaatu_khayrun_minan_nawm.wav   (×2, faqat Bomdod uchun)
+allohu_akbar_closing.wav            (×2)
+laa_ilaaha_illalloh.wav             (×1)
+```
+
+Foydalanuvchi tomonidan taqdim etilgan, tekshirilgan (WAV/PCM16,
+44100Hz — mono va stereo aralash, `WavDecoder` ikkalasini ham
+qo'llab-quvvatlaydi), "eshitib tasdiqlangan" fayllar. Hech qanday
+kesish/o'zgartirish qilinmadi — faqat `maqamat/phrases/{maqom}/`
+papkasiga joylashtirildi.
+
+### To'liq, uzluksiz azon namunalari (faqat eshitish uchun)
+
+`assets/audio/maqamat/full/{maqom}_full.wav` — 8 ta fayl, 3-5 daqiqa
+uzunlikdagi to'liq, uzluksiz azon yozuvlari. **Bular jumla-darajasidagi
+fayllar bilan hech qanday aloqasi yo'q** — faqat
+`MaqamSelectionScreen` → `FullAdhanPreviewScreen` orqali Play/Pause/
+Stop uchun ishlatiladi, tahlilga umuman berilmaydi.
+
+Uchta fayl (Lami, Kurd, Hijaz) — jimlik-naqsh tekshiruvi orqali
+avvalgi original yuklamalar bilan solishtirilib, bir xil ekanligi
+mustaqil tasdiqlangan (14 segmentlik naqsh mos keldi).
+
 ## v1.15: Iqomat uchun reference audio ENDI TO'LIQ (8/8 jumla)
 
 Foydalanuvchi `Iqamat.mp3`ni (avval "hech qanday tanaffuс yo'q"

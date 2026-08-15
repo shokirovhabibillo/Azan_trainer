@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
-import '../data/phrase_catalog.dart';
 import 'azon_etiquette_screen.dart';
+import 'maqam_selection_screen.dart';
 import 'onboarding_screen.dart';
-import 'practice_screen.dart';
+import 'prayer_time_selection_screen.dart';
 
 enum HomeMode { azon, bomdod, iqomat }
 
@@ -80,21 +80,26 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 
+  /// v1.17: Azon/Bomdod/Iqomat endi to'g'ridan-to'g'ri PracticeScreen'ga
+  /// emas, yangi oqim orqali o'tadi:
+  ///   Azon: Peshin/Asr/Shom/Xufton -> Maqom tanlash -> To'liq namuna
+  ///   Bomdod/Iqomat: Maqom tanlash -> To'liq namuna
+  /// PracticeScreen (mashq oynasi) o'zi — o'zgarishsiz qoladi, faqat
+  /// endi tanlangan maqom bilan ochiladi.
   void _openPractice(BuildContext context, HomeMode mode) {
-    final phrases = switch (mode) {
-      HomeMode.azon => PhraseCatalog.azonSequence(isBomdod: false),
-      HomeMode.bomdod => PhraseCatalog.azonSequence(isBomdod: true),
-      HomeMode.iqomat => PhraseCatalog.iqomat,
-    };
-    final title = switch (mode) {
-      HomeMode.azon => 'Azon',
-      HomeMode.bomdod => 'Bomdod azoni',
-      HomeMode.iqomat => 'Iqomat',
+    final Widget screen = switch (mode) {
+      HomeMode.azon => const PrayerTimeSelectionScreen(),
+      HomeMode.bomdod => const MaqamSelectionScreen(
+          sessionTitle: 'Bomdod azoni',
+          isBomdod: true,
+        ),
+      HomeMode.iqomat => const MaqamSelectionScreen(
+          sessionTitle: 'Iqomat',
+          isIqomat: true,
+        ),
     };
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PracticeScreen(title: title, phrases: phrases),
-      ),
+      MaterialPageRoute(builder: (_) => screen),
     );
   }
 }

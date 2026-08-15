@@ -30,6 +30,17 @@ enum _RecordState { idle, recording, recorded }
 class PhrasePracticeScreen extends StatefulWidget {
   final Phrase phrase;
 
+  /// v1.17: SESSIYA darajasida tanlangan maqom (yangi Maqom tanlash
+  /// oqimi orqali kirilganda). Berilgan bo'lsa, bu jumla uchun ham
+  /// SHU maqomga mos reference audio ishlatiladi (agar
+  /// `MaqamReferenceCatalog`da mavjud bo'lsa) — endi har bir jumlada
+  /// alohida tanlash yo'q, bitta sessiya = bitta maqom.
+  ///
+  /// `null` bo'lsa (masalan eski yo'l bilan sinovdan o'tkazilganda),
+  /// jumlaning o'z standart (`Phrase.maqam`) variantidan foydalaniladi
+  /// — hech qanday regressiya bo'lmaydi.
+  final Maqam? sessionMaqam;
+
   /// v1.7: shu jumla uchun oldin yozib olingan audio va (agar mavjud
   /// bo'lsa) tahlil natijasi. `PracticeScreen`dan (aniqrog'i, uning
   /// `PracticeSessionController`idan) keladi — jumlalar orasida
@@ -49,6 +60,7 @@ class PhrasePracticeScreen extends StatefulWidget {
     super.key,
     required this.phrase,
     required this.onStateChanged,
+    this.sessionMaqam,
     this.initialState,
     this.onPrevious,
     this.onNext,
@@ -104,35 +116,33 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
   /// v1.3: Play/Pause/Stop tugmalarini to'g'ri holatda ko'rsatish uchun.
   PlayerState _referencePlayerState = PlayerState.stopped;
 
-  /// v1.10: agar bu jumla uchun bir nechta maqom variantida reference
-  /// audio mavjud bo'lsa (masalan Bayati/Lami/Kurd), foydalanuvchi
-  /// tanlagan variant shu yerda saqlanadi. Boshlang'ich qiymat —
-  /// jumlaning standart (`widget.phrase.maqam`) varianti.
-  late Maqam _selectedMaqam;
+  /// v1.17: endi maqom SESSIYA darajasida (`widget.sessionMaqam`
+  /// orqali) keladi — har bir jumlada alohida tanlash yo'q. Agar
+  /// session maqomi berilmagan bo'lsa (`null`), jumlaning o'z
+  /// standart maqomi ishlatiladi.
+  Maqam get _effectiveMaqam => widget.sessionMaqam ?? widget.phrase.maqam;
 
-  /// v1.10: joriy tanlangan maqom variantiga mos, HAQIQIY ishlatiladigan
+  /// v1.10/v1.17: joriy (sessiya) maqomiga mos, HAQIQIY ishlatiladigan
   /// `Phrase` obyekti — faqat `referenceAudioFile`/`maqam` maydonlari
   /// almashtirilgan, boshqa hamma narsa (matn, takrorlanish soni)
   /// o'zgarmagan. `PitchAnalyzer`/`DurationAnalyzer` (himoyalangan
   /// fayllar) buni oddiy `Phrase` sifatida qabul qiladi — ular ko'p
   /// maqom haqida umuman "bilishmaydi".
   Phrase get _effectivePhrase {
-    final variants = MaqamReferenceCatalog.variantsFor(widget.phrase.id);
-    if (variants.isEmpty) return widget.phrase;
-    final selected = variants.firstWhere(
-      (v) => v.maqam == _selectedMaqam,
-      orElse: () => variants.first,
+    final variant = MaqamReferenceCatalog.variantForMaqam(
+      widget.phrase.id,
+      _effectiveMaqam,
     );
+    if (variant == null) return widget.phrase;
     return widget.phrase.copyWithReference(
-      referenceAudioFile: selected.audioFile,
-      maqam: selected.maqam,
+      referenceAudioFile: variant.audioFile,
+      maqam: variant.maqam,
     );
   }
 
   @override
   void initState() {
     super.initState();
-    _selectedMaqam = widget.phrase.maqam;
     _restoreInitialState();
     _checkReferenceAvailability();
     _precomputeReferenceContour();
@@ -196,32 +206,6 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
         await _referenceChecker.exists(_effectivePhrase.referenceAudioFile);
     if (!mounted) return;
     setState(() => _referenceAvailable = exists);
-  }
-
-  /// v1.10: foydalanuvchi boshqa maqom variantini tanlaganda
-  /// chaqiriladi. Reference mavjudligini qayta tekshiradi va — MUHIM —
-  /// eski maqomga tegishli bo'lgan keshlangan tahlil natijasini bekor
-  /// qiladi (aks holda foydalanuvchi Bayati bilan solishtirilgan
-  /// natijani Kurd tanlagandan keyin ham ko'rib qolishi mumkin edi).
-  void _onMaqamSelected(Maqam maqam) {
-    if (maqam == _selectedMaqam) return;
-    setState(() {
-      _selectedMaqam = maqam;
-      _referenceAvailable = null;
-      _cachedAnalysisResult = null;
-      _cachedDurationResult = null;
-      _precomputedReference = null;
-    });
-    _checkReferenceAvailability();
-    _precomputeReferenceContour();
-    if (_recordingPath != null) {
-      widget.onStateChanged(
-        PhrasePracticeState(
-          recordingPath: _recordingPath!,
-          recordingDuration: _recordedDuration,
-        ),
-      );
-    }
   }
 
   @override
@@ -394,12 +378,18 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
       child: Column(
         children: [
           PhraseCard(phrase: _effectivePhrase),
+          if (widget.sessionMaqam != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Maqom: ${_effectiveMaqam.label}',
+              style: const TextStyle(fontSize: 12, color: Colors.black45),
+            ),
+          ],
           if (phraseEtiquetteHints.containsKey(widget.phrase.id)) ...[
             const SizedBox(height: 10),
             _buildEtiquetteHint(phraseEtiquetteHints[widget.phrase.id]!),
           ],
           const SizedBox(height: 20),
-          _buildMaqamSelector(),
           _buildReferenceControls(),
           if (_referenceAvailable == false) ...[
             const SizedBox(height: 6),
@@ -536,38 +526,6 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
               color: AppTheme.primary,
               fontWeight: FontWeight.w500,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMaqamSelector() {
-    final variants = MaqamReferenceCatalog.variantsFor(widget.phrase.id);
-    if (variants.length <= 1) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        children: [
-          const Text(
-            'Maqom',
-            style: TextStyle(fontSize: 12, color: Colors.black54),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: variants.map((v) {
-              final selected = v.maqam == _selectedMaqam;
-              return ChoiceChip(
-                label: Text(v.maqam.label),
-                selected: selected,
-                selectedColor: AppTheme.primary.withOpacity(0.2),
-                onSelected: (_) => _onMaqamSelected(v.maqam),
-              );
-            }).toList(),
           ),
         ],
       ),

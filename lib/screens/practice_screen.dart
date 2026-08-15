@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/maqam.dart';
 import '../models/phrase.dart';
 import '../models/phrase_practice_state.dart';
 import '../services/practice_session_controller.dart';
@@ -22,14 +23,23 @@ import 'phrase_practice_screen.dart';
 ///     audiosidan/natijasidan foydalanadi;
 ///   - yozilmagan jumla uchun boshqa jumla audiosi hech qachon
 ///     ishlatilmaydi.
+///
+/// v1.17: [sessionMaqam] — agar berilgan bo'lsa (yangi Maqom tanlash
+/// oqimi orqali kirilgan bo'lsa), butun sessiya davomida BIR XIL
+/// maqom ishlatiladi — har bir jumlada alohida tanlash shart emas.
+/// `null` bo'lsa (masalan eski/to'g'ridan-to'g'ri yo'l bilan
+/// ochilgan bo'lsa), jumlaning o'z standart maqomidan foydalaniladi
+/// — hech qanday regressiya yo'q.
 class PracticeScreen extends StatefulWidget {
   final String title;
   final List<Phrase> phrases;
+  final Maqam? sessionMaqam;
 
   const PracticeScreen({
     super.key,
     required this.title,
     required this.phrases,
+    this.sessionMaqam,
   });
 
   @override
@@ -85,6 +95,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
         // initialState orqali controller'dan tiklanadi.
         key: ValueKey(phrase.id),
         phrase: phrase,
+        sessionMaqam: widget.sessionMaqam,
         initialState: _controller.stateFor(phrase.id),
         onStateChanged: (state) => _handleStateChanged(phrase.id, state),
         onPrevious: _index > 0 ? () => setState(() => _index--) : null,

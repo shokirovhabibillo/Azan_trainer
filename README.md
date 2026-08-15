@@ -1,4 +1,121 @@
-# Azon Trainer — v1.16 (Azon Etiquette)
+# Azon Trainer — v1.18 (Sequential Full Adhan Preview, 273MB)
+
+## v1.18 — Ilova hajmini 467MB → 273MB'ga qisqartirish
+
+**Foydalanuvchi ongli ravishda qaror qildi** (avvalgi "jumla
+fayllarini ulab soxta to'liq audio yaratmang" qoidasini bila turib
+qayta ko'rib chiqdi): o'chirilganlar —
+- Eski, dublikat root-darajadagi Bayati/Lami/Kurd/Hijaz fayllari
+  (endi 8/8 maqom to'plamida bor) — **38MB**
+- `maqamat/full/` — 8 ta haqiqiy, uzluksiz azon yozuvi — **157MB**
+
+**Iqomat fayllari (8 ta) — saqlanib qoldi** (ularga muqobil yo'q).
+
+### Yechim: "Ketma-ket avtomatik ijro" (fayllarni jismonan ulamasdan)
+
+`FullAdhanPreviewScreen` endi **ikki rejimni** avtomatik qo'llab-
+quvvatlaydi:
+1. **Yagona fayl rejimi** — agar `FullMaqamAdhanCatalog`da haqiqiy
+   uzluksiz yozuv bo'lsa (hozircha bo'sh, lekin **kelajakda foydalanuvchi
+   uchun tayyorlanadigan 467MB versiyada** to'ldiriladi — kod
+   o'zgarishisiz ishlaydi).
+2. **Ketma-ket rejim** (hozirgi standart) — mavjud jumla-darajasidagi
+   fayllar (`MaqamReferenceCatalog`dan, Azon/Bomdod tartibida) bittasi
+   tabiiy tugagach ikkinchisi **avtomatik** boshlanadi
+   (`SequentialPlaybackSequence` — sof, testlangan holat-mashinasi,
+   `AudioPlayerService.onComplete` orqali). **Hech qanday yangi fayl
+   yaratilmaydi** — mavjud 64 faylning o'zi qayta ishlatiladi.
+
+### Yangi/o'zgargan fayllar
+
+- `lib/services/audio/sequential_playback_sequence.dart` — YANGI, sof
+  Dart, to'liq test qilingan
+- `lib/services/audio/audio_player_service.dart` — faqat **qo'shildi**
+  (`onComplete` getter), mavjud metodlarga tegilmadi
+- `lib/screens/full_adhan_preview_screen.dart` — ikki rejimni
+  qo'llab-quvvatlaydigan qilib qayta yozildi
+- `lib/screens/maqam_selection_screen.dart` — muhim tuzatish: maqom
+  ro'yxati endi `FullMaqamAdhanCatalog`dan MUSTAQIL (aks holda bo'sh
+  katalog sababli ekran butunlay bo'sh chiqib qolardi)
+- `lib/data/full_maqam_adhan_catalog.dart` — `all` ro'yxati ongli
+  ravishda bo'shatildi (fayllar yo'q)
+
+**Kelajak uchun eslatma:** foydalanuvchi o'zi uchun keyinroq to'liq
+467MB versiyani so'ragan — bu holda faqat `FullMaqamAdhanCatalog.all`
+ro'yxatiga yozuvlar qaytariladi, boshqa hech qanday kod o'zgarishi
+shart emas.
+
+**Mavjud funksiyalarga tegilmadi:** himoyalangan fayllar, recording-
+state, real-vaqt pitch monitor, `result_screen.dart` — barchasi
+`diff` bilan tasdiqlangan.
+
+---
+
+
+
+## v1.17 — Maqom tanlash + To'liq azon eshitish
+
+### Yangi foydalanuvchi oqimi
+
+```
+Home
+ ├── AZON
+ │    → Peshin/Asr/Shom/Xufton (navigatsion, kontent bir xil)
+ │    → Maqom tanlash (8 ta: Bayati/Ajam/Kurd/Hijaz/Lami/Nahawand/Rast/Saba)
+ │    → To'liq azon namunasini eshitish (Play/Pause/Stop)
+ │    → "Mashq qilishni boshlash"
+ │    → PracticeScreen (o'zgarmagan, endi tanlangan maqom bilan)
+ ├── BOMDOD AZONI
+ │    → Maqom tanlash → To'liq Fajr azoni → Mashq
+ └── IQOMAT
+      → Maqom tanlash → "To'liq Iqamah hali mavjud emas" → Mashq
+```
+
+### Ikkita QAT'IY AJRATILGAN audio tizimi
+
+1. **`MaqamReferenceCatalog`** (jumla-darajasida, pitch/duration tahlili
+   uchun) — endi **8 maqom × 8 jumla** (jami 64 fayl) to'liq to'plami:
+   `assets/audio/maqamat/phrases/{maqom}/{jumla}.wav`. Bomdod
+   qo'shimchasi ("As-solaatu khoyrum...") ham barcha 8 maqomda mavjud
+   — bu ilgari hech qaysi maqomda yo'q edi.
+
+2. **`FullMaqamAdhanCatalog`** (mustaqil, yangi) — 8 ta to'liq,
+   uzluksiz azon yozuvi: `assets/audio/maqamat/full/{maqom}_full.wav`.
+   **Faqat oddiy Play/Pause/Stop** — YIN, PitchContourExtractor,
+   ReferencePitchComparator, DurationAnalyzer bilan **hech qanday
+   aloqasi yo'q**. Segmentlar ulab "soxta to'liq audio" yaratilmagan
+   — foydalanuvchi tomonidan taqdim etilgan original, uzluksiz
+   yozuvlar (jimlik-naqsh tekshiruvi orqali tasdiqlangan).
+
+### Session-darajasidagi maqom
+
+`PhrasePracticeScreen`dagi eski, **har-jumla-alohida** maqom
+tanlovchisi (ChoiceChip) **olib tashlandi**. Endi maqom
+`MaqamSelectionScreen`da **bir marta** tanlanadi va butun mashq
+sessiyasi davomida o'zgarmaydi (`PracticeScreen(sessionMaqam: ...)`
+orqali uzatiladi) — foydalanuvchi tasodifan bir jumlada Bayati,
+boshqasida Hijazga o'tib qolmaydi.
+
+### Texnik arxitektura
+
+- `Phrase`/`MaqamReferenceCatalog`ning o'zi (himoyalangan
+  `PitchAnalyzer`/`DurationAnalyzer`ga uzatiladigan mexanizm) —
+  **o'zgarmagan**: `Phrase.copyWithReference()` orqali session-maqomga
+  mos audio fayli almashtiriladi, keyin oddiy `Phrase` sifatida
+  tahlilchilarga beriladi — ular ko'p-maqom haqida "bilishmaydi".
+- `AudioPlayerService.playAsset()` — o'zgartirilmadi, u allaqachon
+  istalgan nisbiy yo'lni (pastki papka bilan ham) qabul qila oladi.
+- `pubspec.yaml`ga yangi papkalar **alohida-alohida** ro'yxatlandi
+  (Flutter pastki papkalarni avtomatik qamrab olmaydi).
+
+**Mavjud funksiyalarga tegilmadi:** `result_screen.dart`,
+`azon_results_screen.dart`, `phrase_catalog.dart`, recording-state,
+real-vaqt pitch monitor — barchasi `diff` bilan **IDENTICAL**
+tasdiqlangan.
+
+---
+
+
 
 ## v1.16 — Azon aytish tartibi va odoblari
 

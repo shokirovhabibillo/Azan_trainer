@@ -1,7 +1,7 @@
 name: azon_trainer
-description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.16 - Azon Etiquette).
+description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.18 - Sequential Full Adhan Preview, 273MB).
 publish_to: "none"
-version: 0.1.16+1
+version: 0.1.18+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -47,3 +47,14 @@ flutter:
   uses-material-design: true
   assets:
     - assets/audio/
+    # v1.17: Flutter asset e'lonlari pastki papkalarni AVTOMATIK
+    # qamrab olmaydi — shuning uchun har bir yangi papka alohida
+    # ro'yxatlanishi shart.
+    - assets/audio/maqamat/phrases/bayati/
+    - assets/audio/maqamat/phrases/ajam/
+    - assets/audio/maqamat/phrases/kurd/
+    - assets/audio/maqamat/phrases/hijaz/
+    - assets/audio/maqamat/phrases/lami/
+    - assets/audio/maqamat/phrases/nahawand/
+    - assets/audio/maqamat/phrases/rast/
+    - assets/audio/maqamat/phrases/saba/

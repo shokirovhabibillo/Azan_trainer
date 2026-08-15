@@ -16,6 +16,14 @@ class AudioPlayerService {
   /// ko'rsatishi uchun ishlatilishi mumkin.
   Stream<PlayerState> get onStateChanged => _player.onPlayerStateChanged;
 
+  /// v1.18: bitta audio segmenti TABIIY tugaganda signal beradi
+  /// (foydalanuvchi Stop bosgani uchun emas). Ketma-ket avtomatik
+  /// ijro etish (masalan, "to'liq azon" — jumlalarni birlashtirmasdan,
+  /// birin-ketin avtomatik ijro etib) uchun ishlatiladi. Mavjud
+  /// Play/Pause/Stop xatti-harakatiga hech qanday ta'sir qilmaydi —
+  /// bu faqat QO'SHIMCHA, kuzatuvchi oqim.
+  Stream<void> get onComplete => _player.onPlayerComplete;
+
   Future<bool> playAsset(String assetFileName) async {
     try {
       await _player.play(AssetSource('audio/$assetFileName'));
