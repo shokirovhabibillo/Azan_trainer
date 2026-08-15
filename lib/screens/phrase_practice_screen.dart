@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart' show PlayerState;
@@ -11,11 +12,16 @@ import '../models/maqam.dart';
 import '../models/phrase.dart';
 import '../models/phrase_practice_state.dart';
 import '../models/practice_session.dart';
+import '../services/analysis/realtime_pitch_analyzer.dart';
+import '../services/analysis/reference_contour_precomputer.dart';
+import '../services/analysis/voice_level_analyzer.dart';
 import '../services/audio/audio_player_service.dart';
-import '../services/audio/audio_recorder_service.dart';
+import '../services/audio/realtime_audio_recorder_service.dart';
 import '../services/audio/reference_audio_checker.dart';
 import '../services/progress_service.dart';
+import '../widgets/live_pitch_deviation_meter.dart';
 import '../widgets/phrase_card.dart';
+import '../widgets/voice_level_meter.dart';
 import 'result_screen.dart';
 
 enum _RecordState { idle, recording, recorded }
@@ -52,15 +58,36 @@ class PhrasePracticeScreen extends StatefulWidget {
 }
 
 class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
-  final _recorder = AudioRecorderService();
+  // v1.14: eski AudioRecorderService o'rniga real-vaqt monitoring
+  // qo'llab-quvvatlaydigan wrapper ishlatiladi. Bu wrapper ICHIDA
+  // eski, tasdiqlangan AudioRecorderService'ni FALLBACK sifatida
+  // o'zida saqlaydi — agar real-vaqt oqimi biror sababga ko'ra ishga
+  // tushmasa, avtomatik ravishda eski (fayl-asosidagi) rejimga
+  // o'tadi. API sirtqi ko'rinishi (start/stop/cancel/dispose,
+  // RecordingOutcome) bir xil qolgan — mavjud kod ishlashi
+  // buzilmaydi.
+  final _recorder = RealtimeAudioRecorderService();
   final _player = AudioPlayerService();
   final _progress = ProgressService();
   final _referenceChecker = const ReferenceAudioChecker();
+  final _contourPrecomputer = const ReferenceContourPrecomputer();
 
   _RecordState _state = _RecordState.idle;
   String? _recordingPath;
   Duration _recordedDuration = Duration.zero;
   String? _errorMessage;
+
+  /// v1.14: real-vaqt monitoring uchun holat — recording paytida
+  /// to'planib boruvchi jonli pitch namunalari, joriy ovoz darajasi,
+  /// va oldindan hisoblangan reference kontur.
+  StreamSubscription<RealtimePitchSample>? _pitchSub;
+  StreamSubscription<VoiceLevelSample>? _levelSub;
+  final List<RealtimePitchSample> _livePitchSamples = [];
+  VoiceLevelSample? _currentLevel;
+  Stopwatch? _recordingStopwatch;
+  Timer? _elapsedTicker;
+  Duration _liveElapsed = Duration.zero;
+  PrecomputedReferenceContour? _precomputedReference;
 
   /// v1.7: shu jumla uchun keshlangan tahlil natijasi (agar bo'lsa).
   /// Bu qiymatlar mavjud bo'lsa, "Tahlil qilish" bosilganda
@@ -107,10 +134,34 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
     _selectedMaqam = widget.phrase.maqam;
     _restoreInitialState();
     _checkReferenceAvailability();
+    _precomputeReferenceContour();
     _player.onStateChanged.listen((state) {
       if (!mounted) return;
       setState(() => _referencePlayerState = state);
     });
+    // v1.14: real-vaqt pitch/ovoz darajasi oqimlariga obuna bo'lamiz.
+    // Fallback rejimida (streaming ishlamagan holatda) bu oqimlar
+    // shunchaki hech narsa yubormaydi — xato bermaydi.
+    _pitchSub = _recorder.pitchStream.listen((sample) {
+      if (!mounted) return;
+      setState(() => _livePitchSamples.add(sample));
+    });
+    _levelSub = _recorder.levelStream.listen((level) {
+      if (!mounted) return;
+      setState(() => _currentLevel = level);
+    });
+  }
+
+  /// v1.14: reference audioning pitch konturini oldindan hisoblaydi —
+  /// recording boshlanishidan oldin tayyor bo'lishi uchun. Reference
+  /// mavjud bo'lmasa yoki noto'g'ri formatda bo'lsa, natija `null`
+  /// bo'ladi va jonli grafik "Na'muna ovoz mavjud emas" ko'rsatadi.
+  Future<void> _precomputeReferenceContour() async {
+    final result = await _contourPrecomputer.precompute(
+      _effectivePhrase.referenceAudioFile,
+    );
+    if (!mounted) return;
+    setState(() => _precomputedReference = result);
   }
 
   /// v1.7: ota-onadan kelgan holatni tiklaydi — lekin avval audio
@@ -158,8 +209,10 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
       _referenceAvailable = null;
       _cachedAnalysisResult = null;
       _cachedDurationResult = null;
+      _precomputedReference = null;
     });
     _checkReferenceAvailability();
+    _precomputeReferenceContour();
     if (_recordingPath != null) {
       widget.onStateChanged(
         PhrasePracticeState(
@@ -172,6 +225,9 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
 
   @override
   void dispose() {
+    _pitchSub?.cancel();
+    _levelSub?.cancel();
+    _elapsedTicker?.cancel();
     _recorder.dispose();
     _player.dispose();
     super.dispose();
@@ -200,6 +256,9 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
     setState(() => _errorMessage = null);
     try {
       if (_state == _RecordState.recording) {
+        _elapsedTicker?.cancel();
+        _elapsedTicker = null;
+        _recordingStopwatch?.stop();
         final outcome = await _recorder.stop();
         setState(() {
           _state = _RecordState.recorded;
@@ -219,10 +278,26 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
           );
         }
       } else {
+        // v1.14: yangi sessiya uchun jonli monitoring holatini
+        // tozalaymiz.
+        setState(() {
+          _livePitchSamples.clear();
+          _currentLevel = null;
+          _liveElapsed = Duration.zero;
+        });
         await _recorder.start(phraseId: widget.phrase.id);
+        _recordingStopwatch = Stopwatch()..start();
+        _elapsedTicker = Timer.periodic(const Duration(milliseconds: 100), (
+          _,
+        ) {
+          if (!mounted || _recordingStopwatch == null) return;
+          setState(() => _liveElapsed = _recordingStopwatch!.elapsed);
+        });
         setState(() => _state = _RecordState.recording);
       }
     } catch (e) {
+      _elapsedTicker?.cancel();
+      _elapsedTicker = null;
       setState(() {
         _errorMessage = 'Mikrofonga ruxsat kerak: $e';
         _state = _RecordState.idle;
@@ -330,6 +405,26 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
           ],
           const SizedBox(height: 28),
           _buildRecordButton(),
+          if (_state == _RecordState.recording) ...[
+            const SizedBox(height: 20),
+            LivePitchDeviationMeter(
+              referenceContour: _precomputedReference?.contour,
+              referenceDurationSeconds:
+                  _precomputedReference?.durationSeconds,
+              livePitchSamples: _livePitchSamples,
+              elapsed: _liveElapsed,
+            ),
+            const SizedBox(height: 14),
+            VoiceLevelMeter(sample: _currentLevel),
+            if (!_recorder.isUsingRealtimeMonitoring) ...[
+              const SizedBox(height: 6),
+              const Text(
+                'Jonli grafik bu qurilmada mavjud emas — ovoz baribir '
+                'yoziladi',
+                style: TextStyle(fontSize: 11, color: Colors.black38),
+              ),
+            ],
+          ],
           if (_errorMessage != null) ...[
             const SizedBox(height: 12),
             Text(

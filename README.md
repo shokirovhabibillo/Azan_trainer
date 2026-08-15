@@ -1,4 +1,82 @@
-# Azon Trainer — v1.13 (Mandatory Onboarding)
+# Azon Trainer — v1.15 (Iqomat Reference Audio Complete)
+
+## v1.15 — Iqomat na'muna audiosi endi TO'LIQ (8/8)
+
+Foydalanuvchi avvalgi `Iqamat.mp3`ni (jimlik-aniqlash ishlamagani
+sababli avtomatik bo'linmagan edi) **o'zi qo'lda 8 ta jumlaga
+ajratib**, WAV (PCM16/mono/16000Hz) formatida taqdim etdi — shu
+jumladan avval yo'q deb aytilgan "Qod qoomatis-solaah" ham.
+
+Ikkita fayl nomi katalogdagi nomlardan ozgina farq qilgani uchun
+(`iqomat_allohu_akbar.wav` → `_opening.wav`,
+`iqomat_qod_qoomatis_solah.wav` → `iqomat_qad_qomatis_solah.wav`)
+mos ravishda qayta nomlandi — **audio tarkibi o'zgartirilmadi**,
+faqat fayl nomi.
+
+Jami 8 fayl davomiyligi (~43.5s) asl uzluksiz audio bilan **aynan
+mos** — bu segmentatsiya to'g'riligini dasturiy ravishda tasdiqlaydi
+(`test/iqomat_real_audio_test.dart`, HAQIQIY asset yuklash zanjiri
+orqali, fake emas).
+
+Endi Iqomat rejimida barcha 8 jumlada "Namuna ovoz" tugmasi ishlaydi
+va tahlil natijasida reference bilan solishtirish (pitch + duration)
+Azon bilan bir xil tarzda ko'rinadi.
+
+---
+
+
+
+## v1.14 — Real-vaqtli Pitch Counter + Ovoz darajasi
+
+Mashq qilish vaqtida (ovoz yozilayotganda) endi ekranda:
+- **Jonli "Farq (deviation)" grafigi** — reference audio konturi
+  (oldindan hisoblangan) fon sifatida, foydalanuvchi ovozi esa vaqt
+  o'tishi bilan jonli chiziladi
+- **Ovoz darajasi (volume) o'lchovchi** — pitch'dan mustaqil, alohida
+  chiziq/foiz ko'rinishida
+
+**MUHIM — texnik xavf va ochiq eslatma:** `record` paketining oqim
+(`startStream`) API'sini bu sandbox muhitida internet aloqasi
+yo'qligi sababli paket manba kodidan bevosita tasdiqlab bo'lmadi —
+faqat umumiy, ishonchli bilim asosida ishlatildi. Shu sababli:
+- Agar bu API chaqiruvi ishlamasa, `RealtimeAudioRecorderService`
+  **avtomatik ravishda eski, tasdiqlangan fayl-asosidagi
+  `AudioRecorderService`ga o'tadi** (fallback) — bu holatda
+  foydalanuvchi jonli grafikni ko'rmaydi ("Jonli grafik bu qurilmada
+  mavjud emas — ovoz baribir yoziladi" xabari chiqadi), LEKIN ovoz
+  yozish va undan keyingi (post-hoc) tahlil **hech qanday o'zgarishsiz
+  ishlayveradi**.
+- Bu — qurilmada sinab ko'rilishi SHART bo'lgan yagona qism. Agar
+  jonli grafik ishlamasa, xato matnini yuboring — faqat shu bitta
+  faylni (`realtime_audio_recorder_service.dart`) tuzatish kifoya
+  bo'ladi, chunki qolgan barcha mantiq (pitch hisoblash, volume, WAV
+  yozish) undan mustaqil va alohida test qilingan.
+
+**Arxitektura (yangi, mustaqil fayllar):**
+- `lib/services/analysis/realtime_pitch_analyzer.dart` — freym-freym
+  YIN chaqiradi (YIN o'zi o'zgartirilmagan)
+- `lib/services/analysis/voice_level_analyzer.dart` — RMS asosida
+  ovoz darajasi, pitch'dan mustaqil
+- `lib/services/audio/streaming_wav_writer.dart` — oqim baytlaridan
+  `WavDecoder` bilan bayt darajasida mos WAV fayl yozadi (round-trip
+  test bilan tasdiqlangan)
+- `lib/services/analysis/reference_contour_precomputer.dart` —
+  reference konturni oldindan hisoblaydi (mavjud
+  `PitchContourExtractor`ni qayta ishlatib)
+- `lib/services/audio/realtime_audio_recorder_service.dart` — yuqoridagi
+  xavfni yolg'iz o'zida izolyatsiya qiladigan, fallback'li wrapper
+- `lib/widgets/live_pitch_deviation_meter.dart`,
+  `lib/widgets/voice_level_meter.dart` — UI
+
+**Mavjud funksiyalarga tegilmadi:** `phrase_practice_screen.dart`da
+FAQAT recorder implementatsiyasi almashtirildi (bir xil
+`start/stop/cancel/dispose` interfeysi bilan) va jonli grafik UI
+qo'shildi — recording, tahlil, maqom tanlash, jumlalar orasida
+o'tish arxitekturasi o'zgarishsiz qoldi.
+
+---
+
+
 
 ## v1.13 — Majburiy "Muhim ma'lumotlar" onboarding
 

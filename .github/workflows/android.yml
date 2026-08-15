@@ -41,6 +41,17 @@ jobs:
           sed -i -E 's/^([[:space:]]*)minSdkVersion[[:space:]]+.*/\1minSdkVersion 23/' android/app/build.gradle 2>/dev/null || true
 
       - name: Modernize Gradle toolchain (AGP + Kotlin + Gradle wrapper)
+        # Holistic fix: the record_android plugin (and other modern
+        # Flutter plugins) are compiled with a newer Kotlin toolchain
+        # that emits Kotlin "sealed class" bytecode metadata. The
+        # default Flutter 3.24.0 template pins an old AGP (7.3.0),
+        # whose D8 dexer cannot process sealed classes ("Sealed
+        # classes are not supported as program classes"). AGP,
+        # Kotlin, and the Gradle wrapper version are interdependent,
+        # so all three are bumped together to a known-compatible set:
+        #   Gradle wrapper: 8.4
+        #   AGP (com.android.application): 8.3.0
+        #   Kotlin (org.jetbrains.kotlin.android): 1.9.22
         run: |
           sed -i -E 's#(distributionUrl=.*gradle-)[0-9.]+(-all\.zip)#\18.4\2#' android/gradle/wrapper/gradle-wrapper.properties 2>/dev/null || true
           echo "gradle-wrapper.properties:"
