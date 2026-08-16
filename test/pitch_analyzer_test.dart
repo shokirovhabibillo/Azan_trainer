@@ -32,12 +32,15 @@ void main() {
 
   final phrase = PhraseCatalog.byId('azon_allohu_akbar');
 
-  // v1.9: Azonning barcha 7 jumlasi endi HAQIQIY reference audioga ega
-  // (Bayati maqomida). Shu sababli "reference mavjud emas" holatini
-  // sinash uchun endi shu jumla ishlatilmaydi — uning o'rniga hali
-  // reference audiosi yo'q bo'lgan Iqomat jumlasi ishlatiladi.
-  final phraseWithoutReference =
-      PhraseCatalog.byId('iqomat_ashhadu_laa_ilaaha');
+  // v1.18: root-darajadagi eski Azon fayllari (masalan
+  // azon_allohu_akbar.wav) ilova hajmini kichraytirish uchun ongli
+  // ravishda o'chirildi (endi 8 maqom to'plamida bor,
+  // MaqamReferenceCatalog orqali). Shu sababli bu jumlaning DEFAULT
+  // (session-maqomsiz) referenceAudioFile qiymati endi haqiqatan
+  // mavjud emas — "reference mavjud emas" holatini sinash uchun
+  // qaytadan shu jumla ishlatiladi (Iqomat fayllari esa v1.15'dan
+  // beri saqlanib qolgani uchun endi mos kelmaydi).
+  final phraseWithoutReference = PhraseCatalog.byId('azon_allohu_akbar');
 
   test('juda qisqa recording (< 0.3s) → "Ovoz juda qisqa"', () async {
     final wav = buildTestWav(
@@ -115,7 +118,10 @@ void main() {
 
     final result = await PitchAnalyzer().analyze(
       recordingPath: path,
-      // iqomat_ashhadu_laa_ilaaha.wav — assets ichida hali yo'q.
+      // azon_allohu_akbar.wav — root-darajadagi eski fayl v1.18'da
+      // o'chirilgan (endi 8 maqom to'plamida, MaqamReferenceCatalog
+      // orqali) — shuning uchun DEFAULT (session-maqomsiz) holatda
+      // assets ichida yo'q.
       referencePhrase: phraseWithoutReference,
     );
 
