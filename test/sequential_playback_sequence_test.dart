@@ -41,8 +41,9 @@ void main() {
     test('reset() ketma-ketlikni boshiga qaytaradi', () {
       final seq = SequentialPlaybackSequence(['a.wav', 'b.wav', 'c.wav']);
       seq.start();
-      seq.advance();
-      seq.advance();
+      seq.advance(); // b.wav
+      seq.advance(); // c.wav
+      seq.advance(); // tugadi (null)
       expect(seq.isFinished, isTrue);
 
       seq.reset();
