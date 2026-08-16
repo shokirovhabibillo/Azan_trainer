@@ -1,0 +1,60 @@
+name: azon_trainer
+description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.20 - Calligraphy Icon + Test Fix Confirmed).
+publish_to: "none"
+version: 0.1.20+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  provider: ^6.1.2
+  record: ^5.1.2
+  audioplayers: ^6.1.0
+  path_provider: ^2.1.3
+  permission_handler: ^11.3.1
+  intl: ^0.19.0
+  shared_preferences: ^2.2.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+# record_linux compile-error fix.
+#
+# This app is Android-only; record_linux is never used at runtime,
+# but the record package facade unconditionally imports it, so Dart
+# must still fully type-check it. Two attempts at pinning specific
+# published record_linux / record_platform_interface version pairs
+# (0.6.0, 0.7.2 with interface 1.6.0 and 1.5.0) all failed with the
+# same "missing implementation" errors - no available published
+# version pair was internally consistent, and this sandbox has no
+# internet access to verify pub dot dev exact version history.
+#
+# Instead of continuing to guess version numbers, record_linux is
+# replaced with a local stub package (vendor/record_linux_stub) that
+# uses Dart noSuchMethod override to satisfy all abstract members
+# automatically, regardless of their exact signatures. See that
+# package for details.
+dependency_overrides:
+  record_linux:
+    path: vendor/record_linux_stub
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/
+    # v1.17: Flutter asset e'lonlari pastki papkalarni AVTOMATIK
+    # qamrab olmaydi — shuning uchun har bir yangi papka alohida
+    # ro'yxatlanishi shart.
+    - assets/audio/maqamat/phrases/bayati/
+    - assets/audio/maqamat/phrases/ajam/
+    - assets/audio/maqamat/phrases/kurd/
+    - assets/audio/maqamat/phrases/hijaz/
+    - assets/audio/maqamat/phrases/lami/
+    - assets/audio/maqamat/phrases/nahawand/
+    - assets/audio/maqamat/phrases/rast/
+    - assets/audio/maqamat/phrases/saba/
