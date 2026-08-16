@@ -82,6 +82,36 @@ jobs:
         run: |
           sed -i 's#<manifest xmlns:android="http://schemas.android.com/apk/res/android">#<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />#' android/app/src/main/AndroidManifest.xml
 
+      - name: Set app icon and label
+        # v1.19: android/ papkasi repo'da saqlanmaydi (har safar
+        # `flutter create` orqali yaratiladi), shuning uchun maxsus
+        # ilova belgisi (branding/ic_launcher/*.png, oldindan
+        # tayyorlangan) va nomi shu bosqichda, generatsiyadan keyin
+        # qo'llaniladi — xuddi applicationId/minSdk kabi.
+        run: |
+          for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            src="branding/ic_launcher/${density}.png"
+            dest="android/app/src/main/res/mipmap-${density}/ic_launcher.png"
+            if [ -f "$src" ]; then
+              mkdir -p "android/app/src/main/res/mipmap-${density}"
+              cp "$src" "$dest"
+              echo "Copied $src -> $dest"
+            else
+              echo "WARNING: $src not found, ic_launcher for $density left as default"
+            fi
+          done
+
+          sed -i -E 's/android:label="[^"]*"/android:label="Azon Trainer"/' android/app/src/main/AndroidManifest.xml
+          echo "AndroidManifest.xml label line:"
+          grep "android:label" android/app/src/main/AndroidManifest.xml || true
+
+          # Agar shablon "adaptive icon" XML (mipmap-anydpi-v26)
+          # yaratgan bo'lsa, u Android 8+ da bizning PNG'imizdan
+          # USTUN turadi — shuning uchun uni olib tashlaymiz, PNG
+          # hamma versiyada ishlatiladi.
+          rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          rmdir android/app/src/main/res/mipmap-anydpi-v26 2>/dev/null || true
+
       - name: Provide legacy flutter extension for plugin submodules
         run: |
           if [ -f android/build.gradle.kts ]; then

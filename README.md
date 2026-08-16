@@ -1,4 +1,62 @@
-# Azon Trainer — v1.18 (Sequential Full Adhan Preview, 273MB)
+# Azon Trainer — v1.20 (Calligraphy Icon + Test Fix Confirmed)
+
+## v1.20 — Yakuniy: kaligrafiya ikonkasi + test tuzatishi tasdiqlangan
+
+**Ilova belgisi yangilandi:** oldingi (masjid+minora+hilol) dizayn
+o'rniga — arabcha **"أذان"** (Azan/Adhan) so'zi, **Amiri** shrifti
+bilan (klassik Naskh uslubidagi kaligrafiya, to'g'ri harf bog'lash —
+Raqm/HarfBuzz orqali tasdiqlangan), yashil fonda (`AppTheme.primary`
+#1B7A5A), oq rangda. `branding/ic_launcher/` — barcha 5 zichlik +
+Play Store 512×512.
+
+**Test tuzatishi qayta tasdiqlandi:** `test/pitch_analyzer_test.dart`
+— "reference audio mavjud emas" testi `azon_allohu_akbar`dan
+foydalanadi (v1.18'da bu jumlaning root-darajadagi standart fayli
+o'chirilgani uchun, DEFAULT holatda haqiqatan mavjud emas). Bu
+tuzatish v1.18(v3)'da kiritilgan va shu versiyada ham saqlanib
+qolgan — agar oldingi build'da bu xato hali ko'rinsa, eski ZIP
+qayta yuklangan bo'lishi mumkin.
+
+**Mavjud funksiyalarga tegilmadi:** himoyalangan fayllar — barchasi
+`diff` bilan tasdiqlangan.
+
+---
+
+
+
+## v1.19 — Ilova belgisi (icon) va nomi (label)
+
+**Ilova belgisi:** yangi, maxsus dizayn — masjid gumbazi + ikkita
+minora + hilol (oy) + ovoz to'lqini (mashq/pitch mavzusini bildiradi),
+ilovaning o'z ranglarida (`AppTheme.primary` #1B7A5A yashil,
+`AppTheme.accent` #C9A24B oltin). `branding/ic_launcher/` papkasida
+5 ta zichlik (mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi) uchun tayyor PNG
+fayllar + Play Store uchun 512×512 nusxa.
+
+**Ilova nomi:** `AndroidManifest.xml`dagi `android:label` — **"Azon
+Trainer"** deb belgilandi.
+
+### Texnik yechim
+
+`android/` papkasi repo'da saqlanmaydi (CI'da `flutter create` orqali
+har safar yaratiladi) — shuning uchun yangi workflow bosqichi ("Set
+app icon and label") qo'shildi:
+1. Har bir zichlik uchun tayyor PNG'ni generatsiya qilingan
+   `mipmap-{density}/ic_launcher.png`ga nusxalaydi
+2. `android:label`ni "Azon Trainer"ga o'zgartiradi
+3. Ehtiyot chorasi: agar shablon "adaptive icon" XML (Android 8+ da
+   PNG'dan ustun turadigan) yaratgan bo'lsa, uni olib tashlaydi —
+   shunda bizning PNG'imiz barcha versiyalarda ishlatiladi
+
+Bu — mavjud `applicationId`/`minSdk` patch qilish naqshiga to'liq mos
+(bir xil usul, yangi risk yo'q).
+
+**Mavjud funksiyalarga tegilmadi:** himoyalangan fayllar, recording-
+state, real-vaqt pitch monitor — barchasi `diff` bilan tasdiqlangan.
+
+---
+
+
 
 ## v1.18 — Ilova hajmini 467MB → 273MB'ga qisqartirish
 
