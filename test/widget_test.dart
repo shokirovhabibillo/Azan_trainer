@@ -25,7 +25,7 @@ void main() {
 
     expect(find.text('Azon Trainer'), findsOneWidget);
     expect(find.text('Azon'), findsOneWidget);
-    expect(find.text('Bomdod azoni'), findsOneWidget);
     expect(find.text('Iqomat'), findsOneWidget);
+    expect(find.text('Azon duosi'), findsOneWidget);
   });
 }

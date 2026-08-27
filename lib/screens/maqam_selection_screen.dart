@@ -29,29 +29,23 @@ const List<Maqam> _selectableMaqams = [
 /// Bu yerda tanlangan maqom butun mashq sessiyasi davomida o'zgarmay
 /// qoladi — `PhrasePracticeScreen`dagi eski, har-jumla-alohida
 /// ChoiceChip tanlovchisi olib tashlandi.
+///
+/// v1.22: bu ekran endi FAQAT Azon oqimida ishlatiladi (Bomdod ham
+/// shu ichida, `prayerTime.isBomdod` orqali) — Iqomat esa maqom
+/// tanlashsiz, to'g'ridan-to'g'ri mashqqa o'tadi (Iqomat tez
+/// aytilgani sababli maqomga bog'liq emas).
 class MaqamSelectionScreen extends StatelessWidget {
   final String sessionTitle;
-  final bool isBomdod;
-  final bool isIqomat;
-
-  /// v1.17: Azon oqimida `PrayerTimeSelectionScreen`dan keladi.
-  /// Hozircha faqat SAQLANADI (kelajakda har bir namoz uchun alohida
-  /// konfiguratsiya qo'shish imkoniyati uchun) — hech qanday kontent
-  /// yoki audio tanlovga ta'sir qilmaydi.
-  final PrayerTime? prayerTime;
+  final PrayerTime prayerTime;
 
   const MaqamSelectionScreen({
     super.key,
     required this.sessionTitle,
-    this.isBomdod = false,
-    this.isIqomat = false,
-    this.prayerTime,
+    required this.prayerTime,
   });
 
-  List<Phrase> get _phrases {
-    if (isIqomat) return PhraseCatalog.iqomat;
-    return PhraseCatalog.azonSequence(isBomdod: isBomdod);
-  }
+  List<Phrase> get _phrases =>
+      PhraseCatalog.azonSequence(isBomdod: prayerTime.isBomdod);
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +70,6 @@ class MaqamSelectionScreen extends StatelessWidget {
                     sessionTitle: sessionTitle,
                     maqam: maqam,
                     phrases: _phrases,
-                    isIqomat: isIqomat,
                     prayerTime: prayerTime,
                   ),
                 ),

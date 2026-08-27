@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
+import '../data/phrase_catalog.dart';
+import 'azon_dua_screen.dart';
 import 'azon_etiquette_screen.dart';
-import 'maqam_selection_screen.dart';
 import 'onboarding_screen.dart';
+import 'practice_screen.dart';
 import 'prayer_time_selection_screen.dart';
-
-enum HomeMode { azon, bomdod, iqomat }
 
 enum _InfoMenuItem { importantInfo, etiquette }
 
@@ -48,23 +48,43 @@ class HomeScreen extends StatelessWidget {
             style: TextStyle(fontSize: 16, color: Colors.black54),
           ),
           const SizedBox(height: 28),
+          // v1.22: Bomdod endi alohida karta emas — Azon oqimidagi
+          // namoz vaqti tanlovida (5-variant sifatida) mavjud.
           _ModeCard(
             title: 'Azon',
-            subtitle: 'Kundalik azon jumlalari',
+            subtitle: 'Peshin, Asr, Shom, Xufton, Bomdod',
             icon: Icons.volume_up,
-            onTap: () => _openPractice(context, HomeMode.azon),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const PrayerTimeSelectionScreen(),
+              ),
+            ),
           ),
-          _ModeCard(
-            title: 'Bomdod azoni',
-            subtitle: '"As-solaatu khoyrum minan-navm" bilan',
-            icon: Icons.wb_twilight,
-            onTap: () => _openPractice(context, HomeMode.bomdod),
-          ),
+          // v1.22: Iqomat maqomga bog'liq emas (tez aytiladi, ohang
+          // farqi ahamiyatsiz) — shuning uchun maqom tanlashsiz,
+          // to'g'ridan-to'g'ri mashqqa o'tadi.
           _ModeCard(
             title: 'Iqomat',
             subtitle: 'Namoz boshlanishidan oldin',
             icon: Icons.play_circle_outline,
-            onTap: () => _openPractice(context, HomeMode.iqomat),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => PracticeScreen(
+                  title: 'Iqomat',
+                  phrases: PhraseCatalog.iqomat,
+                ),
+              ),
+            ),
+          ),
+          // v1.22: yangi — Iqomatdan keyingi ro'yxatda, azon
+          // eshitilgandan/aytilgandan keyin o'qiladigan duo.
+          _ModeCard(
+            title: 'Azon duosi',
+            subtitle: 'Azondan keyin o\'qiladigan duo',
+            icon: Icons.menu_book,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AzonDuaScreen()),
+            ),
           ),
         ],
       ),
@@ -78,29 +98,6 @@ class HomeScreen extends StatelessWidget {
       _InfoMenuItem.etiquette => const AzonEtiquetteScreen(),
     };
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
-  }
-
-  /// v1.17: Azon/Bomdod/Iqomat endi to'g'ridan-to'g'ri PracticeScreen'ga
-  /// emas, yangi oqim orqali o'tadi:
-  ///   Azon: Peshin/Asr/Shom/Xufton -> Maqom tanlash -> To'liq namuna
-  ///   Bomdod/Iqomat: Maqom tanlash -> To'liq namuna
-  /// PracticeScreen (mashq oynasi) o'zi — o'zgarishsiz qoladi, faqat
-  /// endi tanlangan maqom bilan ochiladi.
-  void _openPractice(BuildContext context, HomeMode mode) {
-    final Widget screen = switch (mode) {
-      HomeMode.azon => const PrayerTimeSelectionScreen(),
-      HomeMode.bomdod => const MaqamSelectionScreen(
-          sessionTitle: 'Bomdod azoni',
-          isBomdod: true,
-        ),
-      HomeMode.iqomat => const MaqamSelectionScreen(
-          sessionTitle: 'Iqomat',
-          isIqomat: true,
-        ),
-    };
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => screen),
-    );
   }
 }
 
@@ -130,7 +127,8 @@ class _ModeCard extends StatelessWidget {
           backgroundColor: AppTheme.primary.withOpacity(0.12),
           child: Icon(icon, color: AppTheme.primary),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+        title:
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,

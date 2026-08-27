@@ -1,4 +1,46 @@
-# Azon Trainer — v1.20 (Calligraphy Icon + Test Fix Confirmed)
+# Azon Trainer — v1.23 (Bomdod Merge, Azon Dua, Maqam Contour Chart)
+
+## v1.23 — Uch yo'nalishda yangilanish
+
+### 1) Bomdod → Azon ichiga birlashtirildi
+
+`PrayerTime` enumiga **Bomdod** 5-namoz vaqti sifatida qo'shildi
+(`bomdod, peshin, asr, shom, xufton`). Home ekranida endi faqat 2
+karta: **Azon** (5 namoz vaqti) va **Iqomat**.
+
+### 2) Iqomatda maqom tanlovi olib tashlandi
+
+Iqomat tez aytilgani (ohang farqi ahamiyatsiz) sababli: Home → Iqomat
+→ **to'g'ridan-to'g'ri mashq** (maqom tanlash va to'liq namuna
+bosqichlarisiz).
+
+### 3) "Azon duosi" qo'shildi
+
+Sahih al-Buxoriydagi (614-hadis), barcha mazhablarda tan olingan
+mashhur duo — arabcha matn, transliteratsiya, ma'nosi.
+
+### 4) Maqom pitch-shakli grafigi (yangi vizual funksiya)
+
+`assets/maqom_contours.json` — 8 maqomning 8 jumlasi uchun **haqiqiy
+audio tahlilidan** oldindan hisoblangan pitch-shakl ma'lumotlari
+(davomiylik qiymatlari bizning haqiqiy WAV fayllarimiz bilan 64/64
+holatda mos kelishi mustaqil tasdiqlangan — soxta emas).
+
+`lib/widgets/maqom_contour_chart.dart` (`MaqamFullContourView`) —
+Catmull-Rom spline orqali silliq egri chiziq chizadi, "zulzula"
+(trill) zonalarini zigzag bilan belgilaydi. **Himoyalangan yadroga
+(YIN, PitchContourExtractor, ReferencePitchComparator) tegmaydi** —
+faqat tayyor JSON'ni o'qib chizadi.
+
+Joylashtirildi: "To'liq namuna" ekranida ("Pitch shakli" bo'limi,
+Play/Pause/Stop tugmalaridan pastda).
+
+**Amiri shrifti** — endi `assets/fonts/`da, `pubspec.yaml`da to'g'ri
+e'lon qilingan (yangi dependency emas, statik font-asset).
+
+---
+
+## v1.20 (Calligraphy Icon + Test Fix Confirmed)
 
 ## v1.20 — Yakuniy: kaligrafiya ikonkasi + test tuzatishi tasdiqlangan
 

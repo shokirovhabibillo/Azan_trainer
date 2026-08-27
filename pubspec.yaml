@@ -1,7 +1,7 @@
 name: azon_trainer
-description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.21 - Test Bug Fix).
+description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.23 - Bomdod Merge, Azon Dua, Maqam Contour Chart).
 publish_to: "none"
-version: 0.1.21+1
+version: 0.1.23+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -58,3 +58,12 @@ flutter:
     - assets/audio/maqamat/phrases/nahawand/
     - assets/audio/maqamat/phrases/rast/
     - assets/audio/maqamat/phrases/saba/
+    # v1.23: maqom pitch-shakli ma'lumotlari (haqiqiy audio tahlilidan,
+    # oldindan hisoblangan) — maqom_contour_chart.dart shuni o'qiydi.
+    - assets/maqom_contours.json
+  fonts:
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf
+        - asset: assets/fonts/Amiri-Bold.ttf
+          weight: 700

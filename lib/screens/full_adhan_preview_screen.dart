@@ -9,6 +9,7 @@ import '../models/phrase.dart';
 import '../models/prayer_time.dart';
 import '../services/audio/audio_player_service.dart';
 import '../services/audio/sequential_playback_sequence.dart';
+import '../widgets/maqom_contour_chart.dart';
 import 'practice_screen.dart';
 
 /// v1.18: tanlangan maqomning TO'LIQ azon namunasini eshittirish
@@ -33,16 +34,14 @@ class FullAdhanPreviewScreen extends StatefulWidget {
   final String sessionTitle;
   final Maqam maqam;
   final List<Phrase> phrases;
-  final bool isIqomat;
-  final PrayerTime? prayerTime;
+  final PrayerTime prayerTime;
 
   const FullAdhanPreviewScreen({
     super.key,
     required this.sessionTitle,
     required this.maqam,
     required this.phrases,
-    this.isIqomat = false,
-    this.prayerTime,
+    required this.prayerTime,
   });
 
   @override
@@ -56,11 +55,9 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
   SequentialPlaybackSequence? _sequence;
 
   /// v1.18: agar HAQIQIY uzluksiz yozuv mavjud bo'lsa (1-rejim), shu
-  /// yerda saqlanadi. Iqomat uchun hech qachon `null`dan boshqa
-  /// bo'lmaydi (hali taqdim etilmagan).
-  String? get _singleContinuousFile => widget.isIqomat
-      ? null
-      : FullMaqamAdhanCatalog.audioFileFor(widget.maqam);
+  /// yerda saqlanadi.
+  String? get _singleContinuousFile =>
+      FullMaqamAdhanCatalog.audioFileFor(widget.maqam);
 
   /// v1.18: 2-rejim uchun — jumlalarni ularning O'Z TARTIBIDA (Azon/
   /// Bomdod ketma-ketligi bilan bir xil), shu maqomga mos audio
@@ -68,7 +65,6 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
   /// bo'lmasa, o'sha jumla ketma-ketlikdan chiqarib tashlanadi (xato
   /// bermaydi — shunchaki o'tkazib yuboriladi).
   List<String> get _sequentialFiles {
-    if (widget.isIqomat) return const [];
     return widget.phrases
         .map(
           (p) => MaqamReferenceCatalog.variantForMaqam(p.id, widget.maqam)
@@ -137,11 +133,11 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('${widget.maqam.label} — to\'liq namuna')),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              const Spacer(),
+              const SizedBox(height: 12),
               Icon(
                 Icons.graphic_eq,
                 size: 72,
@@ -163,10 +159,7 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
                         ? 'To\'liq azon namunasi (jumlalar ketma-ket '
                             'ijro etiladi)'
                         : 'To\'liq, uzluksiz azon namunasi')
-                    : (widget.isIqomat
-                        ? 'To\'liq Iqamah namunasi hali mavjud emas — '
-                            'keyinroq qo\'shiladi'
-                        : 'To\'liq namuna hali mavjud emas'),
+                    : 'To\'liq namuna hali mavjud emas',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.black54, fontSize: 13),
               ),
@@ -196,7 +189,31 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
                   ),
                 ],
               ),
-              const Spacer(),
+              const SizedBox(height: 32),
+              // v1.23: har bir jumlaning pitch-shakli (ohang egri
+              // chizig'i) — HAQIQIY audio tahlilidan oldindan
+              // hisoblangan (assets/maqom_contours.json). Bu — sof
+              // vizual ko'rgazma, YIN/PitchContourExtractor/
+              // ReferencePitchComparator bilan aloqasi yo'q (ular
+              // faqat foydalanuvchi mashq qilganda ishga tushadi).
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Pitch shakli',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 220,
+                width: double.infinity,
+                child: MaqamFullContourView(maqomId: widget.maqam.name),
+              ),
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

@@ -4,8 +4,8 @@ import '../core/theme.dart';
 import '../models/prayer_time.dart';
 import 'maqam_selection_screen.dart';
 
-/// v1.17: Azon uchun namoz vaqtini tanlash (faqat navigatsion —
-/// barcha 4 namoz bir xil Azon kontentiga olib boradi).
+/// v1.22: Azon uchun namoz vaqtini tanlash — endi Bomdod (Fajr) ham
+/// shu ro'yxatda (5 ta namoz), alohida Home rejimi emas.
 class PrayerTimeSelectionScreen extends StatelessWidget {
   const PrayerTimeSelectionScreen({super.key});
 
@@ -37,7 +37,6 @@ class PrayerTimeSelectionScreen extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (_) => MaqamSelectionScreen(
                       sessionTitle: 'Azon — ${time.label}',
-                      isBomdod: false,
                       prayerTime: time,
                     ),
                   ),
