@@ -10,6 +10,7 @@ import '../models/prayer_time.dart';
 import '../services/audio/audio_player_service.dart';
 import '../services/audio/sequential_playback_sequence.dart';
 import '../widgets/maqom_contour_chart.dart';
+import '../widgets/ornate_button.dart';
 import 'practice_screen.dart';
 
 /// v1.18: tanlangan maqomning TO'LIQ azon namunasini eshittirish
@@ -214,9 +215,15 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
                 child: MaqomFullContourView(maqomId: widget.maqam.name),
               ),
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
+              // v1.25: OrnateButton — "shakli" so'ralgan dekоrativ
+              // tugma. Nomi qisqartirildi ("Boshlash"), chunki
+              // OrnateButton belgilangan (odatiy 260px) kenglik
+              // uchun mo'ljallangan — uzun matn sig'maydi.
+              Center(
+                child: OrnateButton(
+                  label: 'Boshlash',
+                  icon: Icons.play_arrow_rounded,
+                  palette: OrnatePalette.emerald,
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -229,10 +236,6 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
                       ),
                     );
                   },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4),
-                    child: Text('Mashq qilishni boshlash'),
-                  ),
                 ),
               ),
               const SizedBox(height: 8),

@@ -1,7 +1,7 @@
 name: azon_trainer
-description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.24 - Analyze Fixes).
+description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.25 - Background + Ornate Button).
 publish_to: "none"
-version: 0.1.24+1
+version: 0.1.25+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -61,6 +61,9 @@ flutter:
     # v1.23: maqom pitch-shakli ma'lumotlari (haqiqiy audio tahlilidan,
     # oldindan hisoblangan) — maqom_contour_chart.dart shuni o'qiydi.
     - assets/maqom_contours.json
+    # v1.25: Home ekrani foni (SVG'dan PNG'ga aylantirilgan — yangi
+    # flutter_svg dependency qo'shmasdan, statik rasm sifatida).
+    - assets/backgrounds/emerald_mihrab.png
   fonts:
     - family: Amiri
       fonts:

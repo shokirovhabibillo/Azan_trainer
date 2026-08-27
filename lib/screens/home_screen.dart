@@ -16,7 +16,10 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text('Azon Trainer'),
         actions: [
           PopupMenuButton<_InfoMenuItem>(
@@ -36,54 +39,71 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
+      // v1.25: "emerald_mihrab" foni — SVG'dan PNG'ga aylantirilgan
+      // (yangi flutter_svg dependency qo'shmasdan). Markazi ataylab
+      // sokin qoldirilgan (manba README'siga ko'ra), shuning uchun
+      // ustiga oq kartalar/och matn qo'yish uchun mo'ljallangan.
+      body: Stack(
         children: [
-          const SizedBox(height: 12),
-          const Icon(Icons.mosque, size: 64, color: AppTheme.primary),
-          const SizedBox(height: 8),
-          const Text(
-            'Azon va Iqomat talaffuzini mashq qiling',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.black54),
-          ),
-          const SizedBox(height: 28),
-          // v1.22: Bomdod endi alohida karta emas — Azon oqimidagi
-          // namoz vaqti tanlovida (5-variant sifatida) mavjud.
-          _ModeCard(
-            title: 'Azon',
-            subtitle: 'Peshin, Asr, Shom, Xufton, Bomdod',
-            icon: Icons.volume_up,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const PrayerTimeSelectionScreen(),
-              ),
+          Positioned.fill(
+            child: Image.asset(
+              'assets/backgrounds/emerald_mihrab.png',
+              fit: BoxFit.cover,
             ),
           ),
-          // v1.22: Iqomat maqomga bog'liq emas (tez aytiladi, ohang
-          // farqi ahamiyatsiz) — shuning uchun maqom tanlashsiz,
-          // to'g'ridan-to'g'ri mashqqa o'tadi.
-          _ModeCard(
-            title: 'Iqomat',
-            subtitle: 'Namoz boshlanishidan oldin',
-            icon: Icons.play_circle_outline,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const PracticeScreen(
-                  title: 'Iqomat',
-                  phrases: PhraseCatalog.iqomat,
+          SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+              children: [
+                const SizedBox(height: 12),
+                const Icon(Icons.mosque, size: 64, color: Colors.white),
+                const SizedBox(height: 8),
+                const Text(
+                  'Azon va Iqomat talaffuzini mashq qiling',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.white70),
                 ),
-              ),
-            ),
-          ),
-          // v1.22: yangi — Iqomatdan keyingi ro'yxatda, azon
-          // eshitilgandan/aytilgandan keyin o'qiladigan duo.
-          _ModeCard(
-            title: 'Azon duosi',
-            subtitle: 'Azondan keyin o\'qiladigan duo',
-            icon: Icons.menu_book,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const AzonDuaScreen()),
+                const SizedBox(height: 28),
+                // v1.22: Bomdod endi alohida karta emas — Azon
+                // oqimidagi namoz vaqti tanlovida (5-variant
+                // sifatida) mavjud.
+                _ModeCard(
+                  title: 'Azon',
+                  subtitle: 'Peshin, Asr, Shom, Xufton, Bomdod',
+                  icon: Icons.volume_up,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const PrayerTimeSelectionScreen(),
+                    ),
+                  ),
+                ),
+                // v1.22: Iqomat maqomga bog'liq emas (tez aytiladi,
+                // ohang farqi ahamiyatsiz) — shuning uchun maqom
+                // tanlashsiz, to'g'ridan-to'g'ri mashqqa o'tadi.
+                _ModeCard(
+                  title: 'Iqomat',
+                  subtitle: 'Namoz boshlanishidan oldin',
+                  icon: Icons.play_circle_outline,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const PracticeScreen(
+                        title: 'Iqomat',
+                        phrases: PhraseCatalog.iqomat,
+                      ),
+                    ),
+                  ),
+                ),
+                // v1.22: yangi — Iqomatdan keyingi ro'yxatda, azon
+                // eshitilgandan/aytilgandan keyin o'qiladigan duo.
+                _ModeCard(
+                  title: 'Azon duosi',
+                  subtitle: 'Azondan keyin o\'qiladigan duo',
+                  icon: Icons.menu_book,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AzonDuaScreen()),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
