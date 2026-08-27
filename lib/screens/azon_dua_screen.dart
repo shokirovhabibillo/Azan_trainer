@@ -25,14 +25,14 @@ class AzonDuaScreen extends StatelessWidget {
                   color: AppTheme.primary.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Column(
+                child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
                       AzonDuaContent.arabicText,
                       textAlign: TextAlign.center,
                       textDirection: TextDirection.rtl,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         height: 1.9,
                         color: AppTheme.primary,
@@ -40,11 +40,11 @@ class AzonDuaScreen extends StatelessWidget {
                         fontFamily: 'Amiri',
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
                     Text(
                       AzonDuaContent.transliteration,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontStyle: FontStyle.italic,
                         color: Colors.black87,
@@ -64,9 +64,9 @@ class AzonDuaScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 AzonDuaContent.meaningUz,
-                style: const TextStyle(fontSize: 15, height: 1.5),
+                style: TextStyle(fontSize: 15, height: 1.5),
               ),
               const SizedBox(height: 20),
               Container(
@@ -76,10 +76,9 @@ class AzonDuaScreen extends StatelessWidget {
                   color: AppTheme.accent.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(
+                child: const Text(
                   AzonDuaContent.sourceNote,
-                  style:
-                      const TextStyle(fontSize: 12.5, color: Colors.black54),
+                  style: TextStyle(fontSize: 12.5, color: Colors.black54),
                 ),
               ),
             ],

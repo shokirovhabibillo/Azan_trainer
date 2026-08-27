@@ -69,7 +69,7 @@ class HomeScreen extends StatelessWidget {
             icon: Icons.play_circle_outline,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => PracticeScreen(
+                builder: (_) => const PracticeScreen(
                   title: 'Iqomat',
                   phrases: PhraseCatalog.iqomat,
                 ),

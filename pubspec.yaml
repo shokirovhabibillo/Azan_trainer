@@ -1,7 +1,7 @@
 name: azon_trainer
-description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.23 - Bomdod Merge, Azon Dua, Maqam Contour Chart).
+description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.24 - Analyze Fixes).
 publish_to: "none"
-version: 0.1.23+1
+version: 0.1.24+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

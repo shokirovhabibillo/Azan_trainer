@@ -196,11 +196,11 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
               // vizual ko'rgazma, YIN/PitchContourExtractor/
               // ReferencePitchComparator bilan aloqasi yo'q (ular
               // faqat foydalanuvchi mashq qilganda ishga tushadi).
-              Align(
+              const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Pitch shakli',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.primary,
@@ -211,7 +211,7 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
               SizedBox(
                 height: 220,
                 width: double.infinity,
-                child: MaqamFullContourView(maqomId: widget.maqam.name),
+                child: MaqomFullContourView(maqomId: widget.maqam.name),
               ),
               const SizedBox(height: 32),
               SizedBox(
