@@ -101,11 +101,23 @@ class MaqomContourRepository {
 }
 
 /// A single phrase's schematic contour: smooth line + trill zigzag + label.
+///
+/// v1.26: ikkita QO'SHIMCHA, ixtiyoriy qatlam qo'shildi:
+///   - [cursorTimeSec]: agar berilsa, shu vaqt nuqtasida vertikal
+///     "jonli kursor" chiziladi (to'liq namuna ijrosi bilan
+///     sinxronlash uchun).
+///   - [liveUserPoints]: agar berilsa, mavjud (statik, JSON'dan
+///     kelgan) reference egri chizig'i USTIGA, foydalanuvchi
+///     ovozining JONLI konturi ikkinchi rang bilan chiziladi (mashq
+///     ekranida "namuna ustida shakllanish" effekti uchun).
 class MaqomPhraseChart extends StatelessWidget {
   final MaqomPhrase phrase;
   final Color lineColor;
   final double height;
   final bool showLatinLabel;
+  final double? cursorTimeSec;
+  final List<MaqomPoint>? liveUserPoints;
+  final Color liveUserColor;
 
   const MaqomPhraseChart({
     super.key,
@@ -113,6 +125,9 @@ class MaqomPhraseChart extends StatelessWidget {
     this.lineColor = const Color(0xFFDC2626), // matches reference sketch red
     this.height = 160,
     this.showLatinLabel = true,
+    this.cursorTimeSec,
+    this.liveUserPoints,
+    this.liveUserColor = const Color(0xFF2563EB), // ko'k — foydalanuvchi ovozi
   });
 
   @override
@@ -124,7 +139,13 @@ class MaqomPhraseChart extends StatelessWidget {
           height: height,
           width: double.infinity,
           child: CustomPaint(
-            painter: _ContourPainter(phrase: phrase, lineColor: lineColor),
+            painter: _ContourPainter(
+              phrase: phrase,
+              lineColor: lineColor,
+              cursorTimeSec: cursorTimeSec,
+              liveUserPoints: liveUserPoints,
+              liveUserColor: liveUserColor,
+            ),
           ),
         ),
         const SizedBox(height: 6),
@@ -146,16 +167,40 @@ class MaqomPhraseChart extends StatelessWidget {
 class _ContourPainter extends CustomPainter {
   final MaqomPhrase phrase;
   final Color lineColor;
-  _ContourPainter({required this.phrase, required this.lineColor});
+  final double? cursorTimeSec;
+  final List<MaqomPoint>? liveUserPoints;
+  final Color liveUserColor;
+
+  _ContourPainter({
+    required this.phrase,
+    required this.lineColor,
+    this.cursorTimeSec,
+    this.liveUserPoints,
+    this.liveUserColor = const Color(0xFF2563EB),
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (phrase.points.isEmpty) return;
+    // v1.26: jonli foydalanuvchi nuqtalari reference davomiyligidan
+    // uzunroq bo'lishi mumkin (masalan, sekinroq aytilsa) — chizmani
+    // widget chegarasidan tashqariga "toshib ketishidan" himoya.
+    canvas.clipRect(Offset.zero & size);
 
     final minT = phrase.points.first.t;
     final maxT = phrase.points.last.t;
-    final minY = phrase.points.map((p) => p.semitone).reduce(math.min) - 1;
-    final maxY = phrase.points.map((p) => p.semitone).reduce(math.max) + 1;
+    double minY = phrase.points.map((p) => p.semitone).reduce(math.min) - 1;
+    double maxY = phrase.points.map((p) => p.semitone).reduce(math.max) + 1;
+    // v1.26: agar jonli foydalanuvchi nuqtalari ham chizilsa, ular
+    // reference diapazonidan tashqariga chiqib ketmasligi uchun
+    // Y o'qini kengaytiramiz (aks holda foydalanuvchi ovozi chetga
+    // "kesilib" qolishi mumkin edi).
+    if (liveUserPoints != null && liveUserPoints!.isNotEmpty) {
+      final liveMin = liveUserPoints!.map((p) => p.semitone).reduce(math.min);
+      final liveMax = liveUserPoints!.map((p) => p.semitone).reduce(math.max);
+      minY = math.min(minY, liveMin - 1);
+      maxY = math.max(maxY, liveMax + 1);
+    }
 
     double xOf(double t) => (maxT == minT) ? 0 : (t - minT) / (maxT - minT) * size.width;
     double yOf(double s) =>
@@ -195,6 +240,47 @@ class _ContourPainter extends CustomPainter {
         }
       }
       _drawTrillGlyph(canvas, Offset(xOf(midT), yOf(yAt)), size.height * 0.045, linePaint);
+    }
+
+    // v1.26: jonli foydalanuvchi ovozi — ikkinchi (ko'k) egri chiziq,
+    // reference (qizil) ustiga qo'yiladi. Faqat "voiced" (aniqlangan)
+    // nuqtalar chiziladi — jimlik/aniqlanmagan joylarda chiziq
+    // uzilib turadi (soxta tekislik ko'rsatilmaydi).
+    if (liveUserPoints != null && liveUserPoints!.isNotEmpty) {
+      final userPaint = Paint()
+        ..color = liveUserColor
+        ..strokeWidth = 3.0
+        ..style = PaintingStyle.stroke
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round;
+
+      Offset? prev;
+      for (final p in liveUserPoints!) {
+        final point = Offset(xOf(p.t), yOf(p.semitone));
+        if (prev != null) {
+          canvas.drawLine(prev, point, userPaint);
+        }
+        prev = point;
+      }
+      // Joriy (oxirgi) nuqtada kichik doira — "hozir shu yerdaman".
+      final last = liveUserPoints!.last;
+      canvas.drawCircle(
+        Offset(xOf(last.t), yOf(last.semitone)),
+        4.5,
+        Paint()..color = liveUserColor,
+      );
+    }
+
+    // v1.26: jonli ijro kursori — to'liq namuna ijrosi bilan
+    // sinxronlangan vertikal chiziq.
+    final cursor = cursorTimeSec;
+    if (cursor != null && cursor >= minT && cursor <= maxT) {
+      final cursorPaint = Paint()
+        ..color = Colors.black54
+        ..strokeWidth = 2;
+      final x = xOf(cursor);
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), cursorPaint);
+      canvas.drawCircle(Offset(x, 0), 4, Paint()..color = Colors.black54);
     }
   }
 
@@ -247,41 +333,98 @@ class _ContourPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ContourPainter oldDelegate) =>
-      oldDelegate.phrase != phrase || oldDelegate.lineColor != lineColor;
+      oldDelegate.phrase != phrase ||
+      oldDelegate.lineColor != lineColor ||
+      oldDelegate.cursorTimeSec != cursorTimeSec ||
+      oldDelegate.liveUserPoints != liveUserPoints;
 }
 
 /// Full maqom view: all phrases laid out left-to-right in azon order,
 /// matching the reference image's multi-segment layout.
-class MaqomFullContourView extends StatelessWidget {
+///
+/// v1.26: [activePhraseId] + [activePhrasePositionSec] — agar berilsa,
+/// mos jumla panelida jonli ijro kursori ko'rsatiladi (to'liq namuna
+/// Play/Pause/Stop bilan sinxronlangan holda).
+class MaqomFullContourView extends StatefulWidget {
   final String maqomId;
   final Color lineColor;
   final bool includeFajrOnly;
+  final String? activePhraseId;
+  final double? activePhrasePositionSec;
 
   const MaqomFullContourView({
     super.key,
     required this.maqomId,
     this.lineColor = const Color(0xFFDC2626),
     this.includeFajrOnly = false,
+    this.activePhraseId,
+    this.activePhrasePositionSec,
   });
+
+  @override
+  State<MaqomFullContourView> createState() => _MaqomFullContourViewState();
+}
+
+class _MaqomFullContourViewState extends State<MaqomFullContourView> {
+  final _scrollController = ScrollController();
+  final Map<String, GlobalKey> _phraseKeys = {};
+
+  @override
+  void didUpdateWidget(covariant MaqomFullContourView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.activePhraseId != null &&
+        widget.activePhraseId != oldWidget.activePhraseId) {
+      // v1.26: faol jumla o'zgarganda, uni ko'rinadigan qismga
+      // avtomatik skroll qilamiz (ijro davom etganda foydalanuvchi
+      // qo'lda skroll qilishga majbur bo'lmasin).
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final key = _phraseKeys[widget.activePhraseId];
+        final ctx = key?.currentContext;
+        if (ctx != null) {
+          Scrollable.ensureVisible(
+            ctx,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            alignment: 0.3,
+          );
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<MaqomData>(
-      future: MaqomContourRepository.load(maqomId),
+      future: MaqomContourRepository.load(widget.maqomId),
       builder: (context, snap) {
         if (!snap.hasData) {
           return const SizedBox(height: 160, child: Center(child: CircularProgressIndicator()));
         }
-        final phrases = snap.data!.phrases.where((p) => includeFajrOnly || !p.fajrOnly).toList();
+        final phrases =
+            snap.data!.phrases.where((p) => widget.includeFajrOnly || !p.fajrOnly).toList();
         return SingleChildScrollView(
+          controller: _scrollController,
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
               for (final p in phrases) ...[
                 SizedBox(
+                  key: _phraseKeys.putIfAbsent(p.id, () => GlobalKey()),
                   width: math.max(140, p.durationSec * 9),
-                  child: MaqomPhraseChart(phrase: p, lineColor: lineColor),
+                  child: MaqomPhraseChart(
+                    phrase: p,
+                    lineColor: widget.lineColor,
+                    cursorTimeSec: p.id == widget.activePhraseId
+                        ? widget.activePhrasePositionSec
+                        : null,
+                  ),
                 ),
                 const SizedBox(width: 4),
               ],

@@ -1,7 +1,7 @@
 name: azon_trainer
-description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.25 - Background + Ornate Button).
+description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.26 - Live Contour Overlay + Playback Sync + Bomdod Chart Fix).
 publish_to: "none"
-version: 0.1.25+1
+version: 0.1.26+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

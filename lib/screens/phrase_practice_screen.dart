@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart' show PlayerState;
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ import '../services/audio/realtime_audio_recorder_service.dart';
 import '../services/audio/reference_audio_checker.dart';
 import '../services/progress_service.dart';
 import '../widgets/live_pitch_deviation_meter.dart';
+import '../widgets/maqom_contour_chart.dart';
 import '../widgets/phrase_card.dart';
 import '../widgets/voice_level_meter.dart';
 import 'result_screen.dart';
@@ -140,12 +142,52 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
     );
   }
 
+  /// v1.26: `assets/maqom_contours.json`da mavjud 8 maqom (Iqomatda
+  /// maqom tushunchasi yo'q, shuning uchun u yerda bu funksiya
+  /// ishlamaydi — eski `LivePitchDeviationMeter`ga qaytadi).
+  static const _maqomsWithContourData = {
+    'bayati', 'ajam', 'kurd', 'hijaz', 'lami', 'nahawand', 'rast', 'saba',
+  };
+
+  /// v1.26: joriy jumlaning `maqom_contours.json`dagi ID'si (masalan
+  /// "allohu_akbar") — fayl yo'lining oxirgi qismidan olinadi, xuddi
+  /// `MaqamReferenceCatalog`dagi audio fayl nomi kabi.
+  String? get _maqomContourPhraseId {
+    final variant = MaqamReferenceCatalog.variantForMaqam(
+      widget.phrase.id,
+      _effectiveMaqam,
+    );
+    if (variant == null) return null;
+    return variant.audioFile.split('/').last.replaceAll('.wav', '');
+  }
+
+  Future<MaqomData>? _maqomDataFuture;
+
+  /// v1.26: real-vaqt YIN natijalarini (`RealtimePitchSample`, Hz)
+  /// `maqom_contours.json` bilan BIR XIL koordinata tizimiga
+  /// (tonikaga nisbatan semiton) aylantiradi — shunda foydalanuvchi
+  /// ovozi reference egri chizig'i USTIGA to'g'ridan-to'g'ri
+  /// qo'yilishi mumkin. Faqat "voiced" (aniqlangan) nuqtalar
+  /// kiritiladi.
+  List<MaqomPoint> _liveUserContourPoints(double tonicHz) {
+    final points = <MaqomPoint>[];
+    for (final s in _livePitchSamples) {
+      if (!s.voiced || s.frequencyHz <= 0 || tonicHz <= 0) continue;
+      final semitone = 12 * (math.log(s.frequencyHz / tonicHz) / math.ln2);
+      points.add(MaqomPoint(s.timestampMs / 1000.0, semitone));
+    }
+    return points;
+  }
+
   @override
   void initState() {
     super.initState();
     _restoreInitialState();
     _checkReferenceAvailability();
     _precomputeReferenceContour();
+    if (_maqomsWithContourData.contains(_effectiveMaqam.name)) {
+      _maqomDataFuture = MaqomContourRepository.load(_effectiveMaqam.name);
+    }
     _player.onStateChanged.listen((state) {
       if (!mounted) return;
       setState(() => _referencePlayerState = state);
@@ -402,13 +444,7 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
           _buildRecordButton(),
           if (_state == _RecordState.recording) ...[
             const SizedBox(height: 20),
-            LivePitchDeviationMeter(
-              referenceContour: _precomputedReference?.contour,
-              referenceDurationSeconds:
-                  _precomputedReference?.durationSeconds,
-              livePitchSamples: _livePitchSamples,
-              elapsed: _liveElapsed,
-            ),
+            _buildLivePitchChart(),
             const SizedBox(height: 14),
             VoiceLevelMeter(sample: _currentLevel),
             if (!_recorder.isUsingRealtimeMonitoring) ...[
@@ -574,6 +610,62 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  /// v1.26: mashq qilish paytida ko'rsatiladigan jonli pitch grafigi.
+  /// Agar joriy jumla+maqom uchun `maqom_contours.json`da reference
+  /// ma'lumot mavjud bo'lsa — "To'liq namuna" ekranidagi BIR XIL
+  /// uslubda (qizil reference egri chizig'i + uning ustiga ko'k
+  /// jonli foydalanuvchi konturi) ko'rsatiladi. Aks holda (masalan,
+  /// Iqomat — maqom tushunchasi yo'q) eski `LivePitchDeviationMeter`
+  /// (farq/deviation uslubi) ishlatiladi — hech qanday regressiya
+  /// bo'lmaydi.
+  Widget _buildLivePitchChart() {
+    final future = _maqomDataFuture;
+    final phraseId = _maqomContourPhraseId;
+    if (future == null || phraseId == null) {
+      return LivePitchDeviationMeter(
+        referenceContour: _precomputedReference?.contour,
+        referenceDurationSeconds: _precomputedReference?.durationSeconds,
+        livePitchSamples: _livePitchSamples,
+        elapsed: _liveElapsed,
+      );
+    }
+    return FutureBuilder<MaqomData>(
+      future: future,
+      builder: (context, snap) {
+        if (!snap.hasData) {
+          return const SizedBox(
+            height: 160,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        MaqomPhrase? refPhrase;
+        for (final p in snap.data!.phrases) {
+          if (p.id == phraseId) {
+            refPhrase = p;
+            break;
+          }
+        }
+        if (refPhrase == null) {
+          // Bu jumla uchun maqomda pitch-shakli ma'lumoti yo'q —
+          // eski uslubga qaytamiz (masalan Bomdodning as-solaatu
+          // jumlasi boshqa maqomlarda mavjud bo'lmasa).
+          return LivePitchDeviationMeter(
+            referenceContour: _precomputedReference?.contour,
+            referenceDurationSeconds: _precomputedReference?.durationSeconds,
+            livePitchSamples: _livePitchSamples,
+            elapsed: _liveElapsed,
+          );
+        }
+        return MaqomPhraseChart(
+          phrase: refPhrase,
+          height: 200,
+          showLatinLabel: true,
+          liveUserPoints: _liveUserContourPoints(snap.data!.tonicHz),
+        );
+      },
     );
   }
 

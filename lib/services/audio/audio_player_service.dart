@@ -24,6 +24,11 @@ class AudioPlayerService {
   /// bu faqat QO'SHIMCHA, kuzatuvchi oqim.
   Stream<void> get onComplete => _player.onPlayerComplete;
 
+  /// v1.26: joriy ijro pozitsiyasi (audioplayers paketining standart,
+  /// barqaror xususiyati) — "Pitch shakli" grafigida jonli kursor
+  /// ko'rsatish uchun.
+  Stream<Duration> get onPositionChanged => _player.onPositionChanged;
+
   Future<bool> playAsset(String assetFileName) async {
     try {
       await _player.play(AssetSource('audio/$assetFileName'));

@@ -55,6 +55,13 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
   PlayerState _playerState = PlayerState.stopped;
   SequentialPlaybackSequence? _sequence;
 
+  /// v1.26: "Pitch shakli" grafigidagi jonli kursorni ijro bilan
+  /// sinxronlash uchun — joriy ijro etilayotgan jumlaning JSON id'si
+  /// (masalan "allohu_akbar") va shu jumla ichidagi pozitsiya
+  /// (soniyada).
+  String? _currentPhraseId;
+  double _currentPositionSec = 0;
+
   /// v1.18: agar HAQIQIY uzluksiz yozuv mavjud bo'lsa (1-rejim), shu
   /// yerda saqlanadi.
   String? get _singleContinuousFile =>
@@ -72,6 +79,16 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
               ?.audioFile,
         )
         .whereType<String>()
+        .toList();
+  }
+
+  /// v1.26: `_sequentialFiles` bilan BIR XIL tartibda, lekin
+  /// `maqom_contours.json`dagi jumla ID'lariga aylantirilgan (fayl
+  /// yo'lining oxirgi qismi, `.wav`siz) — "Pitch shakli" grafigidagi
+  /// qaysi panel hozir faol ekanini bilish uchun.
+  List<String> get _sequentialPhraseIds {
+    return _sequentialFiles
+        .map((path) => path.split('/').last.replaceAll('.wav', ''))
         .toList();
   }
 
@@ -94,7 +111,25 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
       final next = seq.advance();
       if (next != null) {
         _player.playAsset(next);
+        setState(() {
+          _currentPhraseId = _sequentialPhraseIds.length > seq.currentIndex
+              ? _sequentialPhraseIds[seq.currentIndex]
+              : null;
+          _currentPositionSec = 0;
+        });
+      } else {
+        setState(() => _currentPhraseId = null);
       }
+    });
+    // v1.26: "Pitch shakli" grafigidagi jonli kursor uchun. Har bir
+    // pozitsiya signalida to'liq qayta qurishning oldini olish uchun
+    // (ekranda 7 ta jumla paneli bor — ortiqcha rebuild sekinlashtirar
+    // edi), faqat sezilarli o'zgarish (>=80ms) bo'lsa yangilanadi.
+    _player.onPositionChanged.listen((pos) {
+      if (!mounted) return;
+      final newSec = pos.inMilliseconds / 1000.0;
+      if ((newSec - _currentPositionSec).abs() < 0.08) return;
+      setState(() => _currentPositionSec = newSec);
     });
   }
 
@@ -116,12 +151,21 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
     final first = seq.start();
     if (first != null) {
       await _player.playAsset(first);
+      setState(() {
+        _currentPhraseId =
+            _sequentialPhraseIds.isNotEmpty ? _sequentialPhraseIds[0] : null;
+        _currentPositionSec = 0;
+      });
     }
   }
 
   Future<void> _stop() async {
     await _player.stop();
     _sequence?.reset();
+    setState(() {
+      _currentPhraseId = null;
+      _currentPositionSec = 0;
+    });
   }
 
   @override
@@ -212,7 +256,12 @@ class _FullAdhanPreviewScreenState extends State<FullAdhanPreviewScreen> {
               SizedBox(
                 height: 220,
                 width: double.infinity,
-                child: MaqomFullContourView(maqomId: widget.maqam.name),
+                child: MaqomFullContourView(
+                  maqomId: widget.maqam.name,
+                  includeFajrOnly: widget.prayerTime.isBomdod,
+                  activePhraseId: _currentPhraseId,
+                  activePhrasePositionSec: _currentPositionSec,
+                ),
               ),
               const SizedBox(height: 32),
               // v1.25: OrnateButton — "shakli" so'ralgan dekоrativ
