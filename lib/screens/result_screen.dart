@@ -1,17 +1,18 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
+import '../data/maqam_reference_catalog.dart';
 import '../models/analysis_result.dart';
 import '../models/duration_comparison_result.dart';
 import '../models/phrase.dart';
+import '../models/pitch_frame.dart';
 import '../models/reference_comparison_result.dart';
 import '../services/analysis/audio_analyzer.dart';
 import '../services/analysis/duration_analyzer.dart';
 import '../services/analysis/pitch_analyzer.dart';
-import '../widgets/dual_pitch_contour_chart.dart';
+import '../widgets/maqom_contour_chart.dart';
 import '../widgets/metric_tile.dart';
-import '../widgets/pitch_deviation_chart.dart';
-import '../widgets/pitch_overlay_chart.dart';
-import '../widgets/pitch_piano_roll_chart.dart';
 
 class ResultScreen extends StatefulWidget {
   final Phrase phrase;
@@ -47,8 +48,6 @@ class ResultScreen extends StatefulWidget {
   State<ResultScreen> createState() => _ResultScreenState();
 }
 
-enum _ChartType { line, deviation, pianoRoll, overlay }
-
 class _ResultScreenState extends State<ResultScreen> {
   // v1.1: haqiqiy F0/pitch tahlili. v1.2: reference mavjud bo'lganda
   // shu tahlilchi orqali reference bilan taqqoslash ham amalga oshadi.
@@ -63,14 +62,49 @@ class _ResultScreenState extends State<ResultScreen> {
   DurationComparisonResult? _durationResult;
   bool _loading = true;
 
-  /// v1.10: foydalanuvchi tanlagan grafik turi (talab: "foydalanuvchi
-  /// o'zi qulayini tanlab foydalansin"). Faqat taqdimot holati —
-  /// tahlil natijasiga ta'sir qilmaydi.
-  _ChartType _chartType = _ChartType.line;
+  /// v1.27: "Pitch contour" turlari (Chiziq/Piano-roll/Farq/Qoplama)
+  /// olib tashlandi — o'rniga "To'liq namuna" va mashq ekranidagi
+  /// BIR XIL uslub ("Pitch shakli" — maqom_contours.json'dan
+  /// reference egri chizig'i + foydalanuvchi ovozi ustma-ust)
+  /// ishlatiladi.
+  static const _maqomsWithContourData = {
+    'bayati', 'ajam', 'kurd', 'hijaz', 'lami', 'nahawand', 'rast', 'saba',
+  };
+
+  Future<MaqomData>? _maqomDataFuture;
+
+  String? get _maqomContourPhraseId {
+    final variant = MaqamReferenceCatalog.variantForMaqam(
+      widget.phrase.id,
+      widget.phrase.maqam,
+    );
+    if (variant == null) return null;
+    return variant.audioFile.split('/').last.replaceAll('.wav', '');
+  }
+
+  /// v1.27: yakunlangan yozuvning TO'LIQ pitch konturini (`PitchFrame`,
+  /// Hz) `maqom_contours.json` bilan bir xil koordinata tizimiga
+  /// (tonikaga nisbatan semiton) aylantiradi. Faqat "voiced" nuqtalar
+  /// kiritiladi.
+  List<MaqomPoint> _userContourPoints(
+    List<PitchFrame> frames,
+    double tonicHz,
+  ) {
+    final points = <MaqomPoint>[];
+    for (final f in frames) {
+      if (!f.voiced || f.frequencyHz <= 0 || tonicHz <= 0) continue;
+      final semitone = 12 * (math.log(f.frequencyHz / tonicHz) / math.ln2);
+      points.add(MaqomPoint(f.timestampMs / 1000.0, semitone));
+    }
+    return points;
+  }
 
   @override
   void initState() {
     super.initState();
+    if (_maqomsWithContourData.contains(widget.phrase.maqam.name)) {
+      _maqomDataFuture = MaqomContourRepository.load(widget.phrase.maqam.name);
+    }
     _runAnalysis();
   }
 
@@ -150,13 +184,11 @@ class _ResultScreenState extends State<ResultScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Pitch contour',
+                    'Pitch shakli',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 10),
-                  _buildChartTypeSelector(),
-                  const SizedBox(height: 10),
-                  _buildSelectedChart(result),
+                  _buildPitchShapeChart(result),
                 ],
               ),
             ),
@@ -207,86 +239,91 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  Widget _buildChartTypeSelector() {
-    final hasReference = _result?.referenceComparison.isAvailable ?? false;
+  /// v1.27: eski "Chiziq/Piano-roll/Farq/Qoplama" tanlovchisi olib
+  /// tashlandi — o'rniga "To'liq namuna" va mashq ekrani bilan BIR
+  /// XIL uslub: `maqom_contours.json`dan reference egri chizig'i +
+  /// foydalanuvchining TO'LIQ yozib olingan ovozi ustma-ust.
+  ///
+  /// Agar joriy jumla+maqom uchun reference kontur ma'lumoti mavjud
+  /// bo'lmasa (masalan, Iqomat — maqom tushunchasi yo'q), faqat
+  /// foydalanuvchi konturi (reference'siz) ko'rsatiladi — xato
+  /// bermaydi.
+  Widget _buildPitchShapeChart(AnalysisResult result) {
+    final future = _maqomDataFuture;
+    final phraseId = _maqomContourPhraseId;
 
-    Widget chip(_ChartType type, String label) {
-      // "Farq" va "Qoplama" grafiklari reference talab qiladi.
-      final requiresReference =
-          type == _ChartType.deviation || type == _ChartType.overlay;
-      final enabled = !requiresReference || hasReference;
-      return ChoiceChip(
-        label: Text(label),
-        selected: _chartType == type,
-        onSelected: enabled
-            ? (_) => setState(() => _chartType = type)
-            : null,
-      );
+    if (future == null || phraseId == null) {
+      return _buildUserOnlyFallback(result);
     }
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        chip(_ChartType.line, 'Chiziq'),
-        chip(_ChartType.pianoRoll, 'Piano-roll'),
-        chip(_ChartType.deviation, 'Farq'),
-        chip(_ChartType.overlay, 'Qoplama'),
-      ],
+    return FutureBuilder<MaqomData>(
+      future: future,
+      builder: (context, snap) {
+        if (!snap.hasData) {
+          return const SizedBox(
+            height: 160,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        MaqomPhrase? refPhrase;
+        for (final p in snap.data!.phrases) {
+          if (p.id == phraseId) {
+            refPhrase = p;
+            break;
+          }
+        }
+        if (refPhrase == null) return _buildUserOnlyFallback(result);
+
+        return MaqomPhraseChart(
+          phrase: refPhrase,
+          height: 200,
+          showLatinLabel: true,
+          liveUserPoints: _userContourPoints(
+            result.pitchContour,
+            snap.data!.tonicHz,
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildSelectedChart(AnalysisResult result) {
-    final hasReference = result.referenceComparison.isAvailable;
-    final userFrames = result.pitchContour;
-    final userDuration = result.recordingDurationSeconds ?? 0;
-    final refFrames =
-        hasReference ? result.referenceComparison.referenceContour : null;
-    final refDuration =
-        hasReference ? result.referenceComparison.referenceDurationSeconds : null;
-
-    switch (_chartType) {
-      case _ChartType.line:
-        return DualPitchContourChart(
-          userFrames: userFrames,
-          userDurationSeconds: userDuration,
-          referenceFrames: refFrames,
-          referenceDurationSeconds: refDuration,
-        );
-      case _ChartType.pianoRoll:
-        return PitchPianoRollChart(
-          userFrames: userFrames,
-          userDurationSeconds: userDuration,
-          referenceFrames: refFrames,
-          referenceDurationSeconds: refDuration,
-        );
-      case _ChartType.deviation:
-        if (!hasReference || refFrames == null || refDuration == null) {
-          return const Text(
-            'Farq grafigi uchun reference audio kerak.',
-            style: TextStyle(color: Colors.black45, fontSize: 12),
-          );
-        }
-        return PitchDeviationChart(
-          userFrames: userFrames,
-          userDurationSeconds: userDuration,
-          referenceFrames: refFrames,
-          referenceDurationSeconds: refDuration,
-        );
-      case _ChartType.overlay:
-        if (!hasReference || refFrames == null || refDuration == null) {
-          return const Text(
-            'Qoplama grafigi uchun reference audio kerak.',
-            style: TextStyle(color: Colors.black45, fontSize: 12),
-          );
-        }
-        return PitchOverlayChart(
-          userFrames: userFrames,
-          userDurationSeconds: userDuration,
-          referenceFrames: refFrames,
-          referenceDurationSeconds: refDuration,
-        );
+  /// v1.27: reference kontur mavjud bo'lmagan holatlar uchun (masalan
+  /// Iqomat) — foydalanuvchi ovozining o'zini, oddiy vaqt/chastota
+  /// o'qi bilan, reference'siz ko'rsatadi. Xuddi shu `MaqomPhraseChart`
+  /// chizuvchisidan foydalanadi (bo'sh "reference" nuqta ro'yxati
+  /// bilan) — alohida chizish kodi yaratilmaydi.
+  Widget _buildUserOnlyFallback(AnalysisResult result) {
+    final userPoints = <MaqomPoint>[];
+    for (final f in result.pitchContour) {
+      if (!f.voiced || f.frequencyHz <= 0) continue;
+      // Reference tonika yo'q — 1 Hz'ga nisbatan semiton (faqat
+      // NISBIY shaklni ko'rsatish uchun, mutlaq balandlik emas).
+      final semitone = 12 * (math.log(f.frequencyHz) / math.ln2);
+      userPoints.add(
+        MaqomPoint(f.timestampMs / 1000.0, semitone),
+      );
     }
+    if (userPoints.isEmpty) {
+      return const Text(
+        'Pitch shaklini chizish uchun yetarli ovoz aniqlanmadi.',
+        style: TextStyle(color: Colors.black45, fontSize: 12),
+      );
+    }
+    final placeholderPhrase = MaqomPhrase(
+      id: 'user_only',
+      labelArabic: '',
+      labelLatin: '',
+      fajrOnly: false,
+      durationSec: userPoints.last.t,
+      points: userPoints,
+      trillZones: const [],
+    );
+    return MaqomPhraseChart(
+      phrase: placeholderPhrase,
+      height: 200,
+      showLatinLabel: false,
+      lineColor: const Color(0xFF2563EB),
+    );
   }
 }
 
