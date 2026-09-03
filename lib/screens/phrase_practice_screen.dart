@@ -635,6 +635,18 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen> {
     return FutureBuilder<MaqomData>(
       future: future,
       builder: (context, snap) {
+        if (snap.hasError) {
+          // v1.29: JSON yuklash/tahlilda kutilmagan xato bo'lsa,
+          // abadiy "yuklanmoqda" holatida qolib ketmasdan, eski
+          // (farq/deviation uslubidagi) grafikka qaytamiz — mashq
+          // qilish funksiyasi hech qachon to'xtab qolmaydi.
+          return LivePitchDeviationMeter(
+            referenceContour: _precomputedReference?.contour,
+            referenceDurationSeconds: _precomputedReference?.durationSeconds,
+            livePitchSamples: _livePitchSamples,
+            elapsed: _liveElapsed,
+          );
+        }
         if (!snap.hasData) {
           return const SizedBox(
             height: 160,

@@ -259,6 +259,9 @@ class _ResultScreenState extends State<ResultScreen> {
     return FutureBuilder<MaqomData>(
       future: future,
       builder: (context, snap) {
+        if (snap.hasError) {
+          return _buildUserOnlyFallback(result);
+        }
         if (!snap.hasData) {
           return const SizedBox(
             height: 160,

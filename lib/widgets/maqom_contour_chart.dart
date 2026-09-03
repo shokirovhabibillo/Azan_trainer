@@ -403,6 +403,18 @@ class _MaqomFullContourViewState extends State<MaqomFullContourView> {
     return FutureBuilder<MaqomData>(
       future: MaqomContourRepository.load(widget.maqomId),
       builder: (context, snap) {
+        if (snap.hasError) {
+          return SizedBox(
+            height: 160,
+            child: Center(
+              child: Text(
+                'Pitch shaklini yuklashda xato: ${snap.error}',
+                style: const TextStyle(color: Colors.red, fontSize: 11),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
         if (!snap.hasData) {
           return const SizedBox(height: 160, child: Center(child: CircularProgressIndicator()));
         }

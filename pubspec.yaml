@@ -1,7 +1,7 @@
 name: azon_trainer
-description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.29 - Trill Detection Tuning).
+description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.30 - Fix Infinite Loading Spinner Bug).
 publish_to: "none"
-version: 0.1.29+1
+version: 0.1.30+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
