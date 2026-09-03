@@ -1,7 +1,7 @@
 name: azon_trainer
-description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.27 - Result Screen Pitch Shape).
+description: Azon/Iqomat talaffuzini o'rgatuvchi va tahlil qiluvchi mashq ilovasi (v1.29 - Trill Detection Tuning).
 publish_to: "none"
-version: 0.1.27+1
+version: 0.1.29+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
