@@ -206,6 +206,27 @@ class _ContourPainter extends CustomPainter {
     double yOf(double s) =>
         (maxY == minY) ? size.height / 2 : size.height - (s - minY) / (maxY - minY) * size.height;
 
+    // v1.31: jonli ijro kursori — MAIN egri chiziqdan OLDIN, orqa fon
+    // sifatida chiziladi (yumshoq, shaffof chiziq — qattiq qora chiziq
+    // egri chiziqni "kesib" qo'yayotgandek ko'rinish berayotgan edi).
+    final cursor = cursorTimeSec;
+    if (cursor != null && cursor >= minT && cursor <= maxT) {
+      final x = xOf(cursor);
+      final cursorPaint = Paint()
+        ..color = Colors.black26
+        ..strokeWidth = 1.5;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), cursorPaint);
+      // Faqat yuqorida kichik uchburchak belgi — pastgacha davom
+      // etadigan "flagpole" o'rniga, chiziqqa xalaqit bermaydi.
+      final markerPaint = Paint()..color = Colors.black45;
+      final marker = Path()
+        ..moveTo(x - 5, 0)
+        ..lineTo(x + 5, 0)
+        ..lineTo(x, 8)
+        ..close();
+      canvas.drawPath(marker, markerPaint);
+    }
+
     final linePaint = Paint()
       ..color = lineColor
       ..strokeWidth = 2.6
@@ -269,18 +290,6 @@ class _ContourPainter extends CustomPainter {
         4.5,
         Paint()..color = liveUserColor,
       );
-    }
-
-    // v1.26: jonli ijro kursori — to'liq namuna ijrosi bilan
-    // sinxronlangan vertikal chiziq.
-    final cursor = cursorTimeSec;
-    if (cursor != null && cursor >= minT && cursor <= maxT) {
-      final cursorPaint = Paint()
-        ..color = Colors.black54
-        ..strokeWidth = 2;
-      final x = xOf(cursor);
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), cursorPaint);
-      canvas.drawCircle(Offset(x, 0), 4, Paint()..color = Colors.black54);
     }
   }
 
