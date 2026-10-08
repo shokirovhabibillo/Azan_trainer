@@ -1,0 +1,4 @@
+#!/bin/sh
+# CI wrapper shim. GitHub Actions provisions the pinned Gradle version
+# with gradle/actions/setup-gradle before Flutter invokes this script.
+exec gradle "$@"
